@@ -25,6 +25,7 @@ from selenium.webdriver.chrome.options import Options # to prevent pop-up window
 #  Wenn man nach dem Jobtitel und dem Standort sucht, erscheinen diese keywords auch in der URL
 # somit kennt man die URL für verschiedene Jobtitel 
 # ! Sollte mehr als ein String verwendet werden, wird '%20' anstatt ein Leerzeichen in der URL benutzt
+start_time =datetime.datetime.now()
 
 job_name= "Robotics" 
 # Cloud-Computing 
@@ -101,7 +102,7 @@ while i <= int(jobs_num/2)+1:
             # click on every 100th job card --> to prevent error on loading new jobs
             job_click_path = f'/html/body/div/div/main/section/ul/li[{((i-2)*2+1)}]' # kleiner als jobs_num füralle i
             #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-            element= WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
             element.click() 
             printcounter=0
         else:
@@ -119,7 +120,8 @@ while i <= int(jobs_num/2)+1:
         time.sleep(0.3)
         pass
 
-
+# Notiz: circa 7-8 minuten bei 8000 jobs------------------
+scrolling_point= datetime.datetime.now()
 # Until now we can only scroll down the website but do not have saved anything
 
 ##############################################################################################
@@ -272,20 +274,24 @@ for item in rand_jobs: #range(len(jobs)):
 
     # Den Path Finden: rechtklick auf das gewünschte Objekt/ den Text >> untersuchen, 
     # dann rechtsklick auf die markierte Stelle im HTML Code >> kopieren >> gesamten XPATH kopieren
-    profile_link_path = '/html/body/div[3]/div/section/div[2]/section/div/a'
-    #f'/html/body/div[1]/div/section/div[2]/section/div/div[1]/div/h4/div[1]/span[1]/a' #vorher
+    profile_link_path = '/html/body/div[1]/div/section/div[2]/section/div/a'
+    # old that worked on other file one_job : '/html/body/div[3]/div/section/div[2]/section/div/a'
+    
+    #f'/html/body/div[1]/div/section/div[2]/section/div/div[1]/div/h4/div[1]/span[1]/a' #vorher anfang april
 
     #second: /html/body/div[3]/div/section/div[2]/section/div/a
 
-    profile_path= '/html/body/main/section[1]/div/section[1]/div/p'
+    
     try:
         prof0 = item.find_element(By.XPATH, profile_link_path).get_attribute('href')
         prof0
         profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, profile_link_path)))
-        profile_click.click() # new tab opens!!!, 12.04 kein neuer tab
+        profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
         # maybe close the pre window with login recommendation
         try:
-            prof_text= item.find_element(By.XPATH,profile_path).get_attribute('innerText')
+            descr_path='/html/body/main/section[1]/div/section[1]/div/p'
+            prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+            prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
         except:
             close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
             #//button[@class=]
@@ -305,8 +311,42 @@ for item in rand_jobs: #range(len(jobs)):
         prof_text.append(None)
         comp_size.append(None)
         pass
+    driver.back()
     
     
 
 driver.back()
 driver.close()
+
+jd#job_description
+seniority 
+emp_type 
+job_func 
+job_ind 
+prof  # company link
+prof_text # company description
+comp_size
+
+
+
+job_SUBdata = pd.DataFrame({
+    'Date': date_list,
+    'Company': company_name_list,
+    'Title': job_title_list,
+    'Location': location_list,
+    'Link': job_link_list
+})
+len(job_SUBdata)
+job_SUBdata.to_csv(r"230426_{0}_{1}_.csv".format(job_name,jobs_num))
+
+
+
+job_SUB2data= pd.DataFrame({
+    'Description': jd,
+    'Level': seniority,
+    'Type': emp_type,
+    'Function': job_func,
+    'Industry': job_ind,
+})
+
+job_SUB2data.to_csv(r"26042023_{0}_.csv".format(job_name))
