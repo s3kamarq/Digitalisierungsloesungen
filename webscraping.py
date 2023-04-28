@@ -27,7 +27,7 @@ from selenium.webdriver.chrome.options import Options # to prevent pop-up window
 # ! Sollte mehr als ein String verwendet werden, wird '%20' anstatt ein Leerzeichen in der URL benutzt
 start_time =datetime.datetime.now()
 
-job_name= "Robotics" 
+job_name= "Robotik" 
 # Cloud-Computing 
 # Online-Marketing
 # E-Commerce
@@ -130,10 +130,6 @@ scrolling_point= datetime.datetime.now()
 ###############################################################################################
 # We get a list containing all jobs that we have found.
 
-job_lists = driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
-jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
-
-
 # Declare a void list to keep track of all obtaind data.
 job_title_list = []
 company_name_list = []
@@ -207,7 +203,7 @@ for item in rand_jobs: #range(len(jobs)):
         job_click_path = f'/html/body/div/div/main/section/ul/li[{num+1}]'
 
         #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-        element= WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+        element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
         element.click() 
 
 
@@ -312,6 +308,7 @@ for item in rand_jobs: #range(len(jobs)):
         comp_size.append(None)
         pass
     driver.back()
+    time.sleep(2)
     
     
 
