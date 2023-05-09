@@ -27,7 +27,7 @@ from selenium.webdriver.chrome.options import Options # to prevent pop-up window
 # ! Sollte mehr als ein String verwendet werden, wird '%20' anstatt ein Leerzeichen in der URL benutzt
 start_time =datetime.datetime.now()
 
-job_name= "Robotik" 
+job_name= "3D-Druck" 
 # Cloud-Computing 
 # Online-Marketing
 # E-Commerce
@@ -122,8 +122,9 @@ while i <= int(jobs_num/2)+1:
 
 # Notiz: circa 7-8 minuten bei 8000 jobs------------------
 scrolling_point= datetime.datetime.now()
-# Until now we can only scroll down the website but do not have saved anything
-
+after_scrolling=datetime.datetime.now()# Until now we can only scroll down the website but do not have saved anything
+job_lists = driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
+jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
 ##############################################################################################
 # 2. Get the basic information: 
 # number of listed jobs, basic information of job description on the left panel of the Website 
@@ -200,8 +201,7 @@ for item in rand_jobs: #range(len(jobs)):
     #__________________________________________________________________________ JOB Link
     
     try: 
-        job_click_path = f'/html/body/div/div/main/section/ul/li[{num+1}]'
-
+        job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
         #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
         element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
         element.click() 
@@ -291,7 +291,7 @@ for item in rand_jobs: #range(len(jobs)):
         except:
             close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
             #//button[@class=]
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
+            WebDriverWait(driver, 4).until(EC.element_to_be_clickable((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
 
             #store the information -profile description + company size
             
@@ -335,7 +335,7 @@ job_SUBdata = pd.DataFrame({
 })
 len(job_SUBdata)
 job_SUBdata.to_csv(r"230426_{0}_{1}_.csv".format(job_name,jobs_num))
-
+job_SUBdata.to_pickle(r"20230509_subdata_{0}_{1}".format(job_name, jobs_num))
 
 
 job_SUB2data= pd.DataFrame({
@@ -347,3 +347,21 @@ job_SUB2data= pd.DataFrame({
 })
 
 job_SUB2data.to_csv(r"26042023_{0}_.csv".format(job_name))
+job_SUB2data.to_pickle(r"20230509_sub2data_{0}_{1}".format(job_name, jobs_num))
+
+job_data= pd.DataFrame({
+    'Date': date_list,
+    'Company': company_name_list,
+    'Title': job_title_list,
+    'Location': location_list,
+    'Link': job_link_list,
+    'Description': jd,
+    'Level': seniority,
+    'Type': emp_type,
+    'Function': job_func,
+    'Industry': job_ind,
+    'profile_Link': prof
+    #'Profile': prof_text,
+    #'Company_Size': comp_size
+})
+job_data.to_csv(r"09052023_{0}_{1}.csv".format(job_name,jobs_num))
