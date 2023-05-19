@@ -27,7 +27,7 @@ from selenium.webdriver.chrome.options import Options # to prevent pop-up window
 # ! Sollte mehr als ein String verwendet werden, wird '%20' anstatt ein Leerzeichen in der URL benutzt
 start_time =datetime.datetime.now()
 
-job_name= "3D-Druck" 
+job_name= "Internet Of Things (IoT)" 
 # Cloud-Computing 
 # Online-Marketing
 # E-Commerce
@@ -193,7 +193,7 @@ comp_size=[]
 
 for item in rand_jobs: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
-    # print(item)
+    print(num)
     #job_func0=[]
     #industries0=[]
     # clicking job to view job details
@@ -284,24 +284,19 @@ for item in rand_jobs: #range(len(jobs)):
         profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, profile_link_path)))
         profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
         # maybe close the pre window with login recommendation
-        try:
-            descr_path='/html/body/main/section[1]/div/section[1]/div/p'
-            prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-            prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-        except:
-            close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
-            #//button[@class=]
-            WebDriverWait(driver, 4).until(EC.element_to_be_clickable((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
+        close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
+        #//button[@class=]
+        WebDriverWait(driver, 4).until(EC.element_to_be_clickable((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
 
-            #store the information -profile description + company size
-            
-            descr_path='/html/body/main/section[1]/div/section[1]/div/p'
-            prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-            prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-            
-            prof.append(prof0)
-            prof_text.append(prof1)
-            comp_size.append(prof2)
+        #store the information -profile description + company size
+        
+        descr_path='/html/body/main/section[1]/div/section[1]/div/p'
+        prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+        prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+        
+        prof.append(prof0)
+        prof_text.append(prof1)
+        comp_size.append(prof2)
     except:
         prof.append(None)
         prof_text.append(None)
@@ -314,6 +309,7 @@ for item in rand_jobs: #range(len(jobs)):
 
 driver.back()
 driver.close()
+
 
 jd#job_description
 seniority 
