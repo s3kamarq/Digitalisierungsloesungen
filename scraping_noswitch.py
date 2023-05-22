@@ -236,7 +236,7 @@ job_title_list #list of str
 # 3.1 Detailed information for every job posting
 # 3.2 Click on the company's LinkedIn page to scrape their profile and company size
 ##########################################################################################
-detail_timestart= datetime.datetime.now()
+
 
 jd = [] #job_description
 seniority = []
@@ -246,8 +246,8 @@ job_ind = []
 prof = [] # company link
 prof_text=[] # company description
 comp_size=[]
-
-for item in rand_jobs: #range(len(jobs)):
+detail_timestart= datetime.datetime.now()
+for item in rand_jobs[10:]: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
     print(num)
     #job_func0=[]
@@ -259,7 +259,7 @@ for item in rand_jobs: #range(len(jobs)):
     try: 
         job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
         #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-        element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+        element= WebDriverWait(driver= driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
         element.click() 
 
 
@@ -340,42 +340,97 @@ for item in rand_jobs: #range(len(jobs)):
     except:
         prof.append(None)
         pass
-    time.sleep(2)
+    #time.sleep(2)
 
 detail_timeend=datetime.datetime.now() 
 
 time_detailinfo= detail_timeend-detail_timestart
 
+#datetime.timedelta(seconds=2157, microseconds=517415) #35 Min.
+
+
+data_basic = pd.DataFrame({
+    'Date': date_list,
+    'Company': company_name_list,
+    'Title': job_title_list,
+    'Location': location_list,
+    'Link': job_link_list
+})
+len(data_basic)
+data_basic.to_csv(r"20230522_{0}_{1}_.csv".format(job_name,jobs_num))
+data_basic.to_pickle(r"20230522_basic{0}_{1}".format(job_name, jobs_num))
+
+
+data_detail= pd.DataFrame({
+    'Description': jd,
+    'Level': seniority,
+    'Type': emp_type,
+    'Function': job_func,
+    'Industry': job_ind,
+})
+
+data_detail.to_csv(r"20230522_{0}_.csv".format(job_name))
+data_detail.to_pickle(r"20230522_detail_{0}_{1}".format(job_name, jobs_num))
+
+dataMerge= pd.DataFrame({
+    'Date': date_list,
+    'Company': company_name_list,
+    'Title': job_title_list,
+    'Location': location_list,
+    'Link': job_link_list,
+    'Description': jd,
+    'Level': seniority,
+    'Type': emp_type,
+    'Function': job_func,
+    'Industry': job_ind,
+    'profile_Link': prof
+    #'Profile': prof_text,
+    #'Company_Size': comp_size
+})
+dataMerge.to_csv(r"20230522basicdetail_{0}_{1}.csv".format(job_name,jobs_num))
 
 ##############################################################################################################
 # Get the information from 
-    
+p=prof[12]  
+kicked=0 # number of times kicked out of the website --> blank page with Login window
 for p in prof: #given must be: profile_link_path?, 
 
     try:
-        prof0 = item.find_element(By.XPATH, profile_link_path).get_attribute('href')
-        prof0
-        profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, profile_link_path)))
-        profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
+        #prof0 = item.find_element(By.XPATH, profile_link_path).get_attribute('href')
+        #prof0
+        driver.get(p)
+        #profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, profile_link_path)))
+        #profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
+        try:
+            prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+            prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
         # maybe close the pre window with login recommendation
-        close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
-        #//button[@class=]
-        WebDriverWait(driver, 4).until(EC.element_to_be_clickable((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
+        except:
+            close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
+            #//button[@class=]
+            WebDriverWait(driver, 4).until(EC.element_to_be_clickable((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
 
-        #store the information -profile description + company size
+            #store the information -profile description + company size
+            prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+            prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
         
-        descr_path='/html/body/main/section[1]/div/section[1]/div/p'
-        prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-        prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-        
-        prof.append(prof0)
         prof_text.append(prof1)
         comp_size.append(prof2)
     except:
+
+        try:
+            driver.get(p)
+            while driver.find_element(By.XPATH,'//*[@id="main-content"]/div/form/h1').get_attribute('innerText')=='Mitglied werden':
+        except:
+            pass
+        if driver.find_element(By.XPATH,'//*[@id="main-content"]/div/form/h1').get_attribute('innerText')=='Mitglied werden':
+            print('Authentification Wall on')
+            kicked=+1
         prof.append(None)
         prof_text.append(None)
         comp_size.append(None)
         pass
+    time.sleep(secs=random.randint(1,4))
 
 
 driver.back()
