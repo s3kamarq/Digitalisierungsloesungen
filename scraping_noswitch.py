@@ -32,7 +32,7 @@ techlist=['Cloud-Computing', 'Online-Marketing','E-Commerce','Künstliche Intell
 ortlist= [1,2,3]
 berufserfahrunglist=[1,2,3,4,5]
 
-job_name= techlist[7] 
+job_name= techlist[0] 
 ort=ortlist[0]
 erfahrung=berufserfahrunglist[1]
 # Cloud-Computing 
@@ -95,7 +95,7 @@ jobs_num
 
 
 # Not all jobs are shown directly. We create a while loop to browse/ scroll down through all jobs. 
-
+scroll_time_start=datetime.datetime.now()
 i = 2
 
 while i <= 60: #1000jobs/25 jobs per load= 40 should be enough but we want to be sure, thus take 60..
@@ -116,13 +116,15 @@ while i <= 60: #1000jobs/25 jobs per load= 40 should be enough but we want to be
         time.sleep(0.3)
         pass
 
-#scrolling_point= datetime.datetime.now()
-#after_scrolling=datetime.datetime.now()# Until now we can only scroll down the website but do not have saved anything
+scroll_time_end=datetime.datetime.now()
 
 job_lists = driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
 jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
 
-
+len(jobs)
+scroll_time=scroll_time_end-scroll_time_start
+scroll_time
+# 2min circa
 ##############################################################################################
 # 2. Get the basic information: 
 # number of listed jobs, basic information of job description on the left panel of the Website 
@@ -174,8 +176,59 @@ def basic_info(rand_jobs=rand_jobs,job_title_list = [],company_name_list = [],
     return company_name_list,job_link_list,date_list,location_list,job_title_list
 
 
-
+basicinfo_time_start=datetime.datetime.now()
 company_name_list,job_link_list,date_list,location_list,job_title_list= basic_info()
+# 3min 30
+basicinfo_time_end=datetime.datetime.now()
+basicinfo_time=basicinfo_time_end-basicinfo_time_start
+
+##################################### Got an error , thus use origial version for now  ################################
+
+# Declare a void list to keep track of all obtaind data.
+job_title_list = []
+company_name_list = []
+location_list = []
+date_list = []
+job_link_list = []
+
+# This function is added to avoid a certain order (1,2,3,..) when webscraping. 
+# That reduces the risk to get banned, as we scan the job like e.g.(104,78,5,2006,..)
+# for more see: https://levelup.gitconnected.com/if-you-are-web-scraping-dont-do-these-things-2cba2ebe5b29
+def scrambled(orig):
+    dest = orig[:]
+    random.shuffle(dest)
+    return dest
+
+rand_jobs=scrambled(jobs)
+
+#We loop over every job and obtain all the wanted info.
+for job in rand_jobs:
+    #job_title
+    job_title = job.find_element(By.CSS_SELECTOR,"h3").get_attribute("innerText")
+    job_title_list.append(job_title)
+    
+    #company_name
+    company_name = job.find_element(By.CSS_SELECTOR,"h4").get_attribute("innerText")
+    company_name_list.append(company_name)
+    
+    #location
+    location = job.find_element(By.CSS_SELECTOR,"div>div>span").get_attribute("innerText")
+    location_list.append(location)
+    
+    #date
+    date = job.find_element(By.CSS_SELECTOR,"div>div>time").get_attribute("datetime")
+    date_list.append(date)
+    
+    #job_link
+    job_link = job.find_element(By.CSS_SELECTOR,"a").get_attribute("href")
+    job_link_list.append(job_link)
+
+company_name_list # list of strings
+job_link_list # list of strings containing the link
+date_list #list of strings with format yyyy-mm-dd
+location_list # list of str
+job_title_list #list of str
+#################################################################### end og version
 
 
 ##########################################################################################
@@ -183,6 +236,7 @@ company_name_list,job_link_list,date_list,location_list,job_title_list= basic_in
 # 3.1 Detailed information for every job posting
 # 3.2 Click on the company's LinkedIn page to scrape their profile and company size
 ##########################################################################################
+detail_timestart= datetime.datetime.now()
 
 jd = [] #job_description
 seniority = []
@@ -288,6 +342,11 @@ for item in rand_jobs: #range(len(jobs)):
         pass
     time.sleep(2)
 
+detail_timeend=datetime.datetime.now() 
+
+time_detailinfo= detail_timeend-detail_timestart
+
+
 ##############################################################################################################
 # Get the information from 
     
@@ -317,6 +376,7 @@ for p in prof: #given must be: profile_link_path?,
         prof_text.append(None)
         comp_size.append(None)
         pass
+
 
 driver.back()
 
