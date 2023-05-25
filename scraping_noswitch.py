@@ -33,8 +33,8 @@ ortlist= [1,2,3]
 berufserfahrunglist=[1,2,3,4,5]
 
 job_name= techlist[0] 
-ort=ortlist[0]
-erfahrung=berufserfahrunglist[1]
+ort=ortlist[1]
+erfahrung=berufserfahrunglist[0]
 # Cloud-Computing 
 # Online-Marketing
 # E-Commerce
@@ -181,54 +181,7 @@ company_name_list,job_link_list,date_list,location_list,job_title_list= basic_in
 # 3min 30
 basicinfo_time_end=datetime.datetime.now()
 basicinfo_time=basicinfo_time_end-basicinfo_time_start
-
-##################################### Got an error , thus use origial version for now  ################################
-
-# Declare a void list to keep track of all obtaind data.
-job_title_list = []
-company_name_list = []
-location_list = []
-date_list = []
-job_link_list = []
-
-# This function is added to avoid a certain order (1,2,3,..) when webscraping. 
-# That reduces the risk to get banned, as we scan the job like e.g.(104,78,5,2006,..)
-# for more see: https://levelup.gitconnected.com/if-you-are-web-scraping-dont-do-these-things-2cba2ebe5b29
-def scrambled(orig):
-    dest = orig[:]
-    random.shuffle(dest)
-    return dest
-
-rand_jobs=scrambled(jobs)
-
-#We loop over every job and obtain all the wanted info.
-for job in rand_jobs:
-    #job_title
-    job_title = job.find_element(By.CSS_SELECTOR,"h3").get_attribute("innerText")
-    job_title_list.append(job_title)
-    
-    #company_name
-    company_name = job.find_element(By.CSS_SELECTOR,"h4").get_attribute("innerText")
-    company_name_list.append(company_name)
-    
-    #location
-    location = job.find_element(By.CSS_SELECTOR,"div>div>span").get_attribute("innerText")
-    location_list.append(location)
-    
-    #date
-    date = job.find_element(By.CSS_SELECTOR,"div>div>time").get_attribute("datetime")
-    date_list.append(date)
-    
-    #job_link
-    job_link = job.find_element(By.CSS_SELECTOR,"a").get_attribute("href")
-    job_link_list.append(job_link)
-
-company_name_list # list of strings
-job_link_list # list of strings containing the link
-date_list #list of strings with format yyyy-mm-dd
-location_list # list of str
-job_title_list #list of str
-#################################################################### end og version
+basicinfo_time
 
 
 ##########################################################################################
@@ -247,7 +200,7 @@ prof = [] # company link
 prof_text=[] # company description
 comp_size=[]
 detail_timestart= datetime.datetime.now()
-for item in rand_jobs[10:]: #range(len(jobs)):
+for item in rand_jobs: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
     print(num)
     #job_func0=[]
@@ -259,13 +212,13 @@ for item in rand_jobs[10:]: #range(len(jobs)):
     try: 
         job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
         #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-        element= WebDriverWait(driver= driver, timeout=5).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+        element= WebDriverWait(driver= driver, timeout=20).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+        time.sleep(random.randint(2,3)) # to ensure that the scrolling is not faster than my code on saving the data 
         element.click() 
 
 
         #job_click = item.find_element(By.XPATH,job_click_path).click() # The URL changes when clicking on a certain job offer
 
-        time.sleep(random.randint(1,3)) # to ensure that the scrolling is not faster than my code on saving the data 
         # random waiting time to avoid a certain structure,so I do not get banned
         #job_click = item.find_element(By.XPATH,'.//a[@class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]"]')
     except TimeoutException:
@@ -345,32 +298,32 @@ for item in rand_jobs[10:]: #range(len(jobs)):
 detail_timeend=datetime.datetime.now() 
 
 time_detailinfo= detail_timeend-detail_timestart
-
+time_detailinfo
 #datetime.timedelta(seconds=2157, microseconds=517415) #35 Min.
 
 
-data_basic = pd.DataFrame({
-    'Date': date_list,
-    'Company': company_name_list,
-    'Title': job_title_list,
-    'Location': location_list,
-    'Link': job_link_list
-})
-len(data_basic)
-data_basic.to_csv(r"20230522_{0}_{1}_.csv".format(job_name,jobs_num))
-data_basic.to_pickle(r"20230522_basic{0}_{1}".format(job_name, jobs_num))
+#data_basic = pd.DataFrame({
+#    'Date': date_list,
+#    'Company': company_name_list,
+#    'Title': job_title_list,
+#    'Location': location_list,
+#    'Link': job_link_list
+#})
+#len(data_basic)
+#data_basic.to_csv(r"basic_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num, ort,erfahrung))
+#data_basic.to_pickle(r"basic{0}_{1}_{2}_{3}.pkl".format(job_name, jobs_num,ort,erfahrung))
 
 
-data_detail= pd.DataFrame({
-    'Description': jd,
-    'Level': seniority,
-    'Type': emp_type,
-    'Function': job_func,
-    'Industry': job_ind,
-})
-
-data_detail.to_csv(r"20230522_{0}_.csv".format(job_name))
-data_detail.to_pickle(r"20230522_detail_{0}_{1}".format(job_name, jobs_num))
+#data_detail= pd.DataFrame({
+#    'Description': jd,
+#    'Level': seniority,
+#    'Type': emp_type,
+#    'Function': job_func,
+#    'Industry': job_ind,
+#})
+#len(data_detail)
+#data_detail.to_csv(r"detail_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num,ort,erfahrung))
+#data_detail.to_pickle(r"detail_{0}_{1}_{2}_{3}.pkl".format(job_name, jobs_num,ort,erfahrung))
 
 dataMerge= pd.DataFrame({
     'Date': date_list,
@@ -387,11 +340,14 @@ dataMerge= pd.DataFrame({
     #'Profile': prof_text,
     #'Company_Size': comp_size
 })
-dataMerge.to_csv(r"20230522basicdetail_{0}_{1}.csv".format(job_name,jobs_num))
+dataMerge.to_csv(r"FINAL_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num,ort,erfahrung))
+dataMerge.to_pickle(r"FINAL_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
 
 ##############################################################################################################
-# Get the information from 
-p=prof[12]  
+# Get the information from the profiles 
+
+########################################################################################################
+p=prof[2]  
 kicked=0 # number of times kicked out of the website --> blank page with Login window
 for p in prof: #given must be: profile_link_path?, 
 
@@ -421,6 +377,8 @@ for p in prof: #given must be: profile_link_path?,
         try:
             driver.get(p)
             while driver.find_element(By.XPATH,'//*[@id="main-content"]/div/form/h1').get_attribute('innerText')=='Mitglied werden':
+                driver.back()
+                driver.get(p)
         except:
             pass
         if driver.find_element(By.XPATH,'//*[@id="main-content"]/div/form/h1').get_attribute('innerText')=='Mitglied werden':
