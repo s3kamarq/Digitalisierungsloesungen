@@ -15,6 +15,8 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options # to prevent pop-up window where Linkedin wants me to login
 import numpy as np
 import pickle
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 # Code is based on the following link:
@@ -35,9 +37,9 @@ techlist=['Cloud-Computing', 'Online-Marketing','E-Commerce','Künstliche Intell
 ortlist= [1,2,3]
 berufserfahrunglist=[1,2,3,4,5]
 
-job_name= techlist[0] 
-ort=ortlist[2]
-erfahrung=berufserfahrunglist[3]
+job_name= techlist[1] 
+ort=ortlist[0]
+erfahrung=berufserfahrunglist[1]
 # Cloud-Computing 
 # Online-Marketing
 # E-Commerce
@@ -395,9 +397,9 @@ driver.close()
 prof_text=[]
 comp_size=[]
 
-#item=rand_jobs[3]
+#item=rand_jobs[2]
 
-for item in rand_jobs: #range(len(jobs)):
+for item in rand_jobs[0:20]: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
     print(num)
 
@@ -424,7 +426,13 @@ for item in rand_jobs: #range(len(jobs)):
     
     #driver.get(p)
     profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a')))
-    profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
+    actions = ActionChains(driver)
+    actions.key_down(Keys.CONTROL)
+    actions.click(on_element=profile_click)
+    actions.perform()
+    tabs = driver.window_handles
+    driver.switch_to.window(tabs[-1]) # always open the last tab
+    #profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
     try:
         time.sleep(1)
         prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
@@ -444,7 +452,8 @@ for item in rand_jobs: #range(len(jobs)):
     finally:
         prof_text.append(prof1)
         comp_size.append(prof2)
-    driver.back()
+    #driver.back()
+    driver.switch_to.window(tabs[0])
     time.sleep(1)
 
 jd1=jd
@@ -453,7 +462,7 @@ del seniority[0:14]
 del prof[0:14]
 ###############################
 
-#Next trie
+#Next try
 # ##################################
 
 
