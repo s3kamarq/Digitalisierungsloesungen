@@ -37,7 +37,7 @@ berufserfahrunglist=[1,2,3,4,5]
 
 job_name= techlist[0] 
 ort=ortlist[2]
-erfahrung=berufserfahrunglist[2]
+erfahrung=berufserfahrunglist[3]
 # Cloud-Computing 
 # Online-Marketing
 # E-Commerce
@@ -201,9 +201,11 @@ job_func = []
 job_ind = []
 prof = [] # company link
 
-
+start=0
+end=10
 def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_jobs=rand_jobs):
 
+    detail_timestart= datetime.datetime.now()
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
         print(num)
@@ -297,6 +299,7 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
         except:
             prof.append(None)
             pass
+        detail_timeend=datetime.datetime.now() 
         #time.sleep(2)
     
     return jd,seniority,emp_type, job_func,job_ind ,prof
