@@ -437,16 +437,11 @@ detail_timeend=datetime.datetime.now()
 df= pd.DataFrame([prof,rand_jobs]).transpose()
 u_prof= [*set(df[0])]
 
-unique=df.drop_duplicates(subset=[0], keep='first')
+unique=df.drop_duplicates(subset=[0], keep='first') # Company link + corresponding WebElement 
+u_webelem= unique[1]
 
 #unique_prof= [*set(prof)]
 #len(unique_prof) # for 1 example 329.. that is one third! a lot of time saving by avoiding duplicates
-
-unique_webelem=[*set(rand_jobs)]
-len(unique_webelem)
-rand_jobs[0]
-prof[0]
-
 
 driver.current_window_handle
 driver.switch_to.new_window()
@@ -479,7 +474,7 @@ item=rand_jobs[0]
 
 maxtab=10
 i=0
-
+####################################################################################################
 for item in rand_jobs[0:10]: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
     print(num)
@@ -538,6 +533,71 @@ for item in rand_jobs[0:10]: #range(len(jobs)):
     driver.switch_to.window(tabs[0])
     time.sleep(1)
     if item in rand_jobs[0::10]:
+        for handle in driver.window_handles[1:]:
+            driver.switch_to.window(handle)
+            driver.close()
+
+################################################################################
+
+
+for item in u_webelem: #range(len(jobs)):
+    num= jobs.index(item) # not rand_jobs, because the order changed there!
+    print(num)
+    i=+1
+
+    #__________________________________________________________________________ JOB Link
+    
+    try: 
+        job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
+        #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
+        element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+        element.click() 
+
+
+        #job_click = item.find_element(By.XPATH,job_click_path).click() # The URL changes when clicking on a certain job offer
+
+        time.sleep(random.randint(2,4)) # to ensure that the scrolling is not faster than my code on saving the data 
+        # random waiting time to avoid a certain structure,so I do not get banned
+        #job_click = item.find_element(By.XPATH,'.//a[@class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]"]')
+    except TimeoutException:
+        print(r"Loading took too much time")
+        pass 
+
+    
+    #prof0 = item.find_element(By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a').get_attribute('href')
+    
+    #driver.get(p)
+    profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a')))
+    actions = ActionChains(driver)
+    actions.key_down(Keys.CONTROL)
+    actions.click(on_element=profile_click)
+    actions.perform()
+    tabs = driver.window_handles
+    driver.switch_to.window(tabs[-1]) # always open the last tab
+    #profile_click.click() # new tab opens!!!, 12.04 kein neuer tab, 26.04, change existing tab
+    try:
+        time.sleep(1)
+        prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+        prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+    # maybe close the pre window with login recommendation
+    except:
+        time.sleep(1)
+        print('pop-up')
+        close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
+        #//button[@class=]
+        wait=WebDriverWait(driver,5)
+        wait.until(EC.visibility_of_element_located((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
+
+        #store the information -profile description + company size
+        prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+        prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+    finally:
+        prof_text.append(prof1)
+        comp_size.append(prof2)
+    #driver.back()
+    driver.switch_to.window(tabs[0])
+    time.sleep(1)
+    if item in u_webelem[0::10]:
         for handle in driver.window_handles[1:]:
             driver.switch_to.window(handle)
             driver.close()
