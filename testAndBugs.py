@@ -497,7 +497,7 @@ maxtab=10
 i=0
 starttime= datetime.datetime.now()
 
-for item in u_webelem[40:]: #range(len(jobs)):
+for item in u_webelem[101:]: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
     print(num)
     i+=1
@@ -519,45 +519,48 @@ for item in u_webelem[40:]: #range(len(jobs)):
         except TimeoutException:
             print(r"Loading took too much time")
             pass 
-
-        profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a')))
-        actions = ActionChains(driver)
-        actions.key_down(Keys.CONTROL)
-        actions.click(on_element=profile_click)
-        # New Tab opens
-        actions.perform()
-        driver.switch_to.window(driver.window_handles[-1]) # always open the last tab
+        
         try:
-            time.sleep(1)
+            profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a')))
+            actions = ActionChains(driver)
+            actions.key_down(Keys.CONTROL)
+            actions.click(on_element=profile_click)
+            # New Tab opens
+            actions.perform() # here can occur: ElementNotInteractableException: Message: element not interactable --> if the detailed info does not load 
+            driver.switch_to.window(driver.window_handles[-1]) # always open the last tab
             try:
-                prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-                prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-            except NoSuchElementException: 
-                prof1= np.nan
-                prof2=np.nan
-        # maybe close the pre window with login recommendation
-        except:
-            time.sleep(1)
-            print('pop-up')
-            close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
-            #//button[@class=]
-            wait=WebDriverWait(driver,5)
-            wait.until(EC.visibility_of_element_located((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
+                time.sleep(1)
+                try:
+                    prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+                    prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+                except NoSuchElementException: 
+                    prof1= np.nan
+                    prof2=np.nan
+            # maybe close the pre window with login recommendation
+            except:
+                time.sleep(1)
+                print('pop-up')
+                close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
+                #//button[@class=]
+                wait=WebDriverWait(driver,5)
+                wait.until(EC.visibility_of_element_located((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
 
-            #store the information -profile description + company size
-            try:
-                prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-                prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-            except NoSuchElementException: 
-                prof1= np.nan
-                prof2=np.nan
-        finally:
-            prof_text.append(prof1)
-            comp_size.append(prof2)
-        for handle in driver.window_handles[1:]:
-            driver.switch_to.window(handle)
-            driver.close()
-        driver.switch_to.window(driver.window_handles[0])
+                #store the information -profile description + company size
+                try:
+                    prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+                    prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+                except NoSuchElementException: 
+                    prof1= np.nan
+                    prof2=np.nan
+            finally:
+                prof_text.append(prof1)
+                comp_size.append(prof2)
+            for handle in driver.window_handles[1:]:
+                driver.switch_to.window(handle)
+                driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+        except TimeoutException:
+            pass
     
     else:
         #__Scraping block__________________________________________________
@@ -577,45 +580,60 @@ for item in u_webelem[40:]: #range(len(jobs)):
             print(r"Loading took too much time")
             pass 
 
-        profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a')))
-        actions = ActionChains(driver)
-        actions.key_down(Keys.CONTROL)
-        actions.click(on_element=profile_click)
-        # New Tab opens
-        actions.perform()
-        driver.switch_to.window(driver.window_handles[-1]) # always open the last tab
         try:
-            time.sleep(1)
+            profile_click = WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/section/div[2]/section/div/a')))
+            actions = ActionChains(driver)
+            actions.key_down(Keys.CONTROL)
+            actions.click(on_element=profile_click)
+            # New Tab opens
+            actions.perform()
+            driver.switch_to.window(driver.window_handles[-1]) # always open the last tab
             try:
-                prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-                prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-            except NoSuchElementException: 
-                prof1= np.nan
-                prof2=np.nan
-        # maybe close the pre window with login recommendation
-        except:
-            time.sleep(1)
-            print('pop-up')
-            close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
-            #//button[@class=]
-            wait=WebDriverWait(driver,5)
-            wait.until(EC.visibility_of_element_located((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
+                time.sleep(1)
+                try:
+                    prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+                    prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+                except NoSuchElementException: 
+                    prof1= np.nan
+                    prof2=np.nan
+            # maybe close the pre window with login recommendation
+            except:
+                time.sleep(1)
+                print('pop-up')
+                close_popup='//*[@id="organization_guest_contextual-sign-in"]/div/section/button' #XPath des Buttons funktioniert!
+                #//button[@class=]
+                wait=WebDriverWait(driver,5)
+                wait.until(EC.visibility_of_element_located((By.XPATH,close_popup))).click() #Pop-up Fenster schließt sich! :)
 
-            #store the information -profile description + company size
-            try:
-                prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
-                prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-            except NoSuchElementException: 
-                prof1= np.nan
-                prof2=np.nan
-            
-        finally:
-            prof_text.append(prof1)
-            comp_size.append(prof2)
-        driver.switch_to.window(driver.window_handles[0])
+                #store the information -profile description + company size
+                try:
+                    prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
+                    prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
+                except NoSuchElementException: 
+                    prof1= np.nan
+                    prof2=np.nan
+                
+            finally:
+                prof_text.append(prof1)
+                comp_size.append(prof2)
+            driver.switch_to.window(driver.window_handles[0])
+        except TimeoutException:
+            pass
 
 endtime=datetime.datetime.now()    
-    
+
+links= unique[0]
+df_profiles= pd.DataFrame({
+    'ID':links[0:148],
+    'description': prof_text,
+    'company size': comp_size
+    }
+)
+
+df_profiles.to_pickle(r"testdatProfiles.pkl")
+df_profiles.to_csv(r"testdata_profiles.csv")
+
+
 i=0
 for item in u_webelem[0:40]: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
