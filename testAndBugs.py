@@ -651,3 +651,32 @@ for item in u_webelem[0:40]: #range(len(jobs)):
     #    driver.switch_to.window(driver.window_handles[0])
     #else:
     #    driver.switch_to.new_window()
+
+
+####################################################################################
+# 
+# open saved data
+#
+####################################################################################
+
+jobdata= pd.read_pickle(r'df0407_Online-Marketing_1000_1_2.pkl')
+jobdata.columns
+jobdata.head()
+
+firmdata= pd.read_pickle(r'testdatProfiles.pkl')
+firmdata.columns
+firmdata.head()
+
+
+len(jobdata.profile_Link) # length of 1000
+len(firmdata.ID) #length of 148 not all were scraped?
+jobdata= jobdata.rename(columns={'profile_Link':'ID'})
+jobdata.columns
+#len(jobdata['profile_Link'])-len(jobdata['profile_Link'].drop_duplicates()) #520 unique
+
+results= jobdata.merge(firmdata, how='outer', on='ID' , validate='many_to_one')
+
+results.shape
+
+results.to_excel("JobFirmsExample.xlsx")
+len(results['ID'])-len(results['ID'].drop_duplicates()) 
