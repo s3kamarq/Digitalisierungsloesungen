@@ -189,8 +189,8 @@ job_func = []
 job_ind = []
 prof = [] # company link
 
-start=0
-end=10
+#start=0
+#end=10
 def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_jobs=rand_jobs):
 
     detail_timestart= datetime.datetime.now()
@@ -293,15 +293,13 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
     return jd,seniority,emp_type, job_func,job_ind ,prof
 
 
+jd1,seniority1,emp_type1, job_func1,job_ind1 ,prof1 =detail_info(start=0, end=10, jd=[], seniority=[],emp_type=[],job_func=[], job_ind=[],prof=[])
 detail_timestart= datetime.datetime.now()
-jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=0, end=10, jd=[], seniority=[],emp_type=[],job_func=[], job_ind=[],prof=[])
-
-jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=20,jd=jd, seniority=seniority,emp_type=emp_type, job_func=job_func, job_ind=job_ind, prof=prof,rand_jobs=rand_jobs, end=len(rand_jobs))
+jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=10,jd=jd, seniority=seniority,emp_type=emp_type, job_func=job_func, job_ind=job_ind, prof=prof,rand_jobs=rand_jobs, end=len(rand_jobs))
 detail_timeend=datetime.datetime.now() 
 
 time_detailinfo= detail_timeend-detail_timestart
 time_detailinfo
-
 
 dataMerge= pd.DataFrame({
     'Date': date_list,
@@ -319,8 +317,11 @@ dataMerge= pd.DataFrame({
     #'Company_Size': comp_size
 })
 
-dataMerge.to_csv(r"df0407_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num,ort,erfahrung))
-dataMerge.to_pickle(r"df0407_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
+
+dataMerge.to_csv(r"df1107_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num,ort,erfahrung))
+dataMerge.to_excel(r"df1107_{0}_{1}_{2}_{3}.xlsx".format(job_name,jobs_num,ort,erfahrung))
+
+dataMerge.to_pickle(r"df1107_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
 
 ####################
 #
@@ -436,7 +437,7 @@ detail_timeend=datetime.datetime.now()
 # Only webscrape the profile page of a company ONCE. One company often has multiple job offers
 
 df= pd.DataFrame([prof,rand_jobs]).transpose()
-u_prof= [*set(df[0])]
+#u_prof= [*set(df[0])]
 
 unique=df.drop_duplicates(subset=[0], keep='first') # Company link + corresponding WebElement 
 u_webelem= unique[1]
@@ -496,8 +497,9 @@ comp_size=[]
 maxtab=10
 i=0
 starttime= datetime.datetime.now()
+no_profilepage=0
 
-for item in u_webelem[101:]: #range(len(jobs)):
+for item in u_webelem[0:20]: #range(len(jobs)):
     num= jobs.index(item) # not rand_jobs, because the order changed there!
     print(num)
     i+=1
@@ -549,17 +551,19 @@ for item in u_webelem[101:]: #range(len(jobs)):
                 try:
                     prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
                     prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-                except NoSuchElementException: 
-                    prof1= np.nan
+
+                except NoSuchElementException: #special case: The company has no profile description on their page, then save them as np.nan
+                    prof1= np.nan 
                     prof2=np.nan
             finally:
-                prof_text.append(prof1)
-                comp_size.append(prof2)
+                prof_text.append(prof1) #append the "About us" for each job posting in a list
+                comp_size.append(prof2) #append the company size for each job posting in a list
             for handle in driver.window_handles[1:]:
                 driver.switch_to.window(handle)
                 driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-        except TimeoutException:
+            driver.switch_to.window(driver.window_handles[0]) # after each iteration, switch to the "main tab"/ the LinkedIn job offer website 
+        except TimeoutException: #special case: the company has no profile page at LinkedIn
+            no_profilepage+=1 #count how many job postings have limited information
             pass
     
     else:
@@ -593,7 +597,8 @@ for item in u_webelem[101:]: #range(len(jobs)):
                 try:
                     prof1= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/section[1]/div/p').get_attribute('innerText')
                     prof2= driver.find_element(By.XPATH, '//*[@id="main-content"]/section[1]/div/section[1]/div/dl/div[3]/dd').get_attribute('innerText')
-                except NoSuchElementException: 
+
+                except NoSuchElementException: #special case: The company has no profile description on their page, then save them as np.nan
                     prof1= np.nan
                     prof2=np.nan
             # maybe close the pre window with login recommendation
@@ -614,10 +619,12 @@ for item in u_webelem[101:]: #range(len(jobs)):
                     prof2=np.nan
                 
             finally:
-                prof_text.append(prof1)
-                comp_size.append(prof2)
-            driver.switch_to.window(driver.window_handles[0])
-        except TimeoutException:
+                prof_text.append(prof1) #append the "About us" for each job posting in a list
+                comp_size.append(prof2) #append the company size for each job posting in a list
+
+            driver.switch_to.window(driver.window_handles[0]) # after each iteration, switch to the "main tab"/ the LinkedIn job offer website 
+        except TimeoutException: #special case: the company has no profile page at LinkedIn
+            no_profilepage+=1 #count how many job postings have limited information/no separate profile page
             pass
 
 endtime=datetime.datetime.now()    
