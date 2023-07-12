@@ -17,6 +17,7 @@ import numpy as np
 import pickle
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+import concurrent.futures # For Multithreading
 
 
 ############################################################################
@@ -188,15 +189,19 @@ emp_type = []
 job_func = []
 job_ind = []
 prof = [] # company link
+id_num=[]
+
 
 #start=0
 #end=10
+detail_timestart= datetime.datetime.now()
 def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_jobs=rand_jobs):
-
-    detail_timestart= datetime.datetime.now()
+    x=0
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
-        print(num)
+        x+=1
+        print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
+        id_num.append(num)
         #job_func0=[]
         #industries0=[]
         # clicking job to view job details
@@ -207,7 +212,7 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
             #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
             element= WebDriverWait(driver= driver, timeout=20).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
-            time.sleep(random.randint(2,4)) # to ensure that the scrolling is not faster than my code on saving the data 
+            time.sleep(random.randint(2,3)) # to ensure that the scrolling is not faster than my code on saving the data 
             element.click() 
 
 
@@ -228,7 +233,8 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             jd0 = item.find_element(By.XPATH,jd_path).get_attribute('innerText')
             jd.append(jd0)
         except:
-            jd.append(None)
+            jd0=None # Not all job postings have all of these detailed information 
+            jd.append(jd0)
             pass
         
         #__________________________________________________________________________ JOB Seniority
@@ -238,7 +244,8 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             seniority0 = item.find_element(By.XPATH,seniority_path).get_attribute('innerText')
             seniority.append(seniority0)
         except:
-            seniority.append(None)
+            seniority0=None
+            seniority.append(seniority0)
             pass
 
         #__________________________________________________________________________ JOB Time
@@ -248,7 +255,8 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             emp_type0 = item.find_element(By.XPATH,emp_type_path).get_attribute('innerText')
             emp_type.append(emp_type0)
         except:
-            emp_type.append(None)
+            emp_type0=None
+            emp_type.append(emp_type0)
             pass
         
         #__________________________________________________________________________ JOB Function
@@ -258,7 +266,8 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             func0 = item.find_element(By.XPATH,function_path).get_attribute('innerText')
             job_func.append(func0)
         except:
-            job_func.append(None)
+            func0=None
+            job_func.append(func0)
             pass
 
         #__________________________________________________________________________ JOB Industry
@@ -268,7 +277,8 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             ind0 = item.find_element(By.XPATH,industry_path).get_attribute('innerText')
             job_ind.append(ind0)
         except:
-            job_ind.append(None)
+            ind0=None
+            job_ind.append(ind0)
             pass
 
         # Den Path Finden: rechtklick auf das gewünschte Objekt/ den Text >> untersuchen, 
@@ -285,17 +295,19 @@ def detail_info(start, end,jd ,seniority,emp_type,job_func,job_ind,prof,rand_job
             prof.append(prof0)
             
         except:
-            prof.append(None)
+            prof0=None
+            prof.append(prof0)
             pass
-        detail_timeend=datetime.datetime.now() 
+        
+        del element,jd0, seniority0,emp_type0,func0,ind0,prof0
         #time.sleep(2)
-    
-    return jd,seniority,emp_type, job_func,job_ind ,prof
+    print("Total time elapsed for detailed info: {}")
+    return id_num, jd,seniority,emp_type, job_func,job_ind ,prof
 
 
-jd1,seniority1,emp_type1, job_func1,job_ind1 ,prof1 =detail_info(start=0, end=10, jd=[], seniority=[],emp_type=[],job_func=[], job_ind=[],prof=[])
+id_num,jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=0, end=10, jd=[], seniority=[],emp_type=[],job_func=[], job_ind=[],prof=[])
 detail_timestart= datetime.datetime.now()
-jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=10,jd=jd, seniority=seniority,emp_type=emp_type, job_func=job_func, job_ind=job_ind, prof=prof,rand_jobs=rand_jobs, end=len(rand_jobs))
+id_num, jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=10,jd=jd, seniority=seniority,emp_type=emp_type, job_func=job_func, job_ind=job_ind, prof=prof,rand_jobs=rand_jobs, end=len(rand_jobs))
 detail_timeend=datetime.datetime.now() 
 
 time_detailinfo= detail_timeend-detail_timestart
@@ -318,10 +330,10 @@ dataMerge= pd.DataFrame({
 })
 
 
-dataMerge.to_csv(r"df1107_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num,ort,erfahrung))
-dataMerge.to_excel(r"df1107_{0}_{1}_{2}_{3}.xlsx".format(job_name,jobs_num,ort,erfahrung))
+dataMerge.to_csv(r"df1207_{0}_{1}_{2}_{3}.csv".format(job_name,jobs_num,ort,erfahrung))
+dataMerge.to_excel(r"df1207_{0}_{1}_{2}_{3}.xlsx".format(job_name,jobs_num,ort,erfahrung))
 
-dataMerge.to_pickle(r"df1107_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
+dataMerge.to_pickle(r"df1207_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
 
 ####################
 #
