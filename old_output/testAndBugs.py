@@ -35,6 +35,7 @@ ort=ortlist[0]
 erfahrung=berufserfahrunglist[1]
 location= "Deutschland"
 
+#------------ create_url function in url.py file -----------------------------
 # Make sure that the job name is put correctly into the URL
 job_url= "";
 for item in job_name.split(" "):
@@ -55,7 +56,7 @@ for item in location.split(" "):
 url = "https://de.linkedin.com/jobs/search?keywords={0}&location={1}&geoId=101282230&trk=guest_homepage-basic_jobs-search-bar_search-submit&f_JT=F&f_WT={2}&f_E={3}&position=1&pageNum=0"
 url= url.format(job_url,loc_url, ort,erfahrung)
 url
-
+#--------------------------------------------------------------------------------------
 # set up the browser
 
 s=Service(ChromeDriverManager().install())
@@ -84,7 +85,6 @@ jobs_num
 # Not all jobs are shown directly. We create a while loop to browse/ scroll down through all jobs. 
 scroll_time_start=datetime.datetime.now()
 i = 2
-
 while i <= 60: #1000jobs/25 jobs per load= 40 should be enough but we want to be sure, thus take 60..
     #We keep scrollind down to the end of the view.
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -113,9 +113,9 @@ scroll_time=scroll_time_end-scroll_time_start
 scroll_time
 # 2min circa
 
-sec_job_list= sec_driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
-sec_jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
-sec_jobs==jobs #True
+#sec_job_list= sec_driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
+#sec_jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
+#sec_jobs==jobs #True
 
 ##############################################################################################
 #
