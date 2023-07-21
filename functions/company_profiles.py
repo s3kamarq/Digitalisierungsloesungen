@@ -165,7 +165,7 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
     print(r"Excecution time for profiles: {}".format(endtime-starttime))
     links= unique[0]
     df_profiles= pd.DataFrame({
-    'ID':links,
+    'prof':links,
     'description': prof_text,
     'company size': comp_size
     })
