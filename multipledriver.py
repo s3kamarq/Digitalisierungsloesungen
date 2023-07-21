@@ -1,3 +1,4 @@
+
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -19,6 +20,10 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import concurrent.futures # For Multithreading
 
+from functions.linkedinjobs_leftpanel import scrambled
+from functions.linkedinjobs_leftpanel import basic_info
+#from functions.linkedinjobs_rightpanel import *
+import multiprocessing as mp
 
 ############################################################################
 # 1. Open LinkedIn Website in the Browser 
@@ -56,127 +61,263 @@ url = "https://de.linkedin.com/jobs/search?keywords={0}&location={1}&geoId=10128
 url= url.format(job_url,loc_url, ort,erfahrung)
 url
 
-# set up the browser
+# set up the browsers --> open 2 idendical chrome windows
 
-s=Service(ChromeDriverManager().install())
-driver= webdriver.Chrome(service=s)
-options = webdriver.ChromeOptions()
-options.add_argument('--ignore-certificate-errors-spki-list')
-options.add_argument("--diable-notifications") #new 16.02 
-driver.get(url)
+mp.cpu_count()# 8 Kerne
+n_worker=2
+def worker(url):
+    s=Service(ChromeDriverManager().install())
+    driver= webdriver.Chrome(service=s)
+    options = webdriver.ChromeOptions()
+    options.add_argument('--no-sandbox')
+    options.add_argument('--no-default-browser-check')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-default-apps')
+    #options.add_argument('--ignore-certificate-errors-spki-list')
+    #options.add_argument("--diable-notifications") #new 16.02 
+    driver.get(url)
+    return driver
 
-driver.maximize_window() #get Chrome full screen 
+drivers=[]
+for i in range(0,n_worker):
+    #drivers['d{0}'.format(i)]=worker(url) #for dictionary version
+    drivers.append(worker(url))
 
+#drivers[0]
+# Maximize the window size to fullscreen
+#list version
+n_jobs=[]
+randomized=[]
+jobs_ordered=[]
+for driver in drivers:
+    driver.maximize_window()
+    ########### Number of jobs LinkedIn gives me at the top of the page #############################
+    jobs_num = driver.find_element(By.CSS_SELECTOR,"h1>span").get_attribute("innerText")
+    if len(jobs_num.split('.')) > 1:
+        jobs_num = int(jobs_num.split('.')[0])*1000
+    else:
+        jobs_num = int(jobs_num)
+    jobs_num   = int(jobs_num)
+    n_jobs.append(jobs_num) # +++ new +++
 
-# We find how many jobs are offered. Note: It may be a rounded number, no exact number given by LinkeIn!
+    ####################### Scroll down to the end ###################################################
+    i = 2
+    while i <= 60: #1000jobs/25 jobs per load= 40 should be enough but we want to be sure, thus take 60..
+        #We keep scrollind down to the end of the view.
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        i = i + 1
+        print("Current at: ", i,end="\r")
+        try:
+            #We try to click on the load more results buttons in case it is already displayed.
+            infinite_scroller_button = driver.find_element(By.XPATH, ".//button[@aria-label='Weitere Jobs anzeigen']") # hat sich geändert 13.02.23, vorher'Weitere Ergebnisse laden'
+            infinite_scroller_button.click()
+            #random_decimal= random.randint(1,9)/10 #new 10.03
+            random_decimal= random.randint(1,4) #new 10.03
 
-jobs_num = driver.find_element(By.CSS_SELECTOR,"h1>span").get_attribute("innerText")
+            time.sleep(random_decimal)
+        except:
+            #If there is no button, there will be an error, so we keep scrolling down.
+            time.sleep(0.3)
+            pass
+    job_lists = driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
+    jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
 
-if len(jobs_num.split('.')) > 1:
-    jobs_num = int(jobs_num.split('.')[0])*1000
-else:
-    jobs_num = int(jobs_num)
-
-jobs_num   = int(jobs_num)
-jobs_num
-
-
-# Not all jobs are shown directly. We create a while loop to browse/ scroll down through all jobs. 
-scroll_time_start=datetime.datetime.now()
-i = 2
-
-while i <= 60: #1000jobs/25 jobs per load= 40 should be enough but we want to be sure, thus take 60..
-    #We keep scrollind down to the end of the view.
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    i = i + 1
-    print("Current at: ", i,end="\r")
-    try:
-        #We try to click on the load more results buttons in case it is already displayed.
-        infinite_scroller_button = driver.find_element(By.XPATH, ".//button[@aria-label='Weitere Jobs anzeigen']") # hat sich geändert 13.02.23, vorher'Weitere Ergebnisse laden'
-        infinite_scroller_button.click()
-        #random_decimal= random.randint(1,9)/10 #new 10.03
-        random_decimal= random.randint(1,4) #new 10.03
-
-        time.sleep(random_decimal)
-    except:
-        #If there is no button, there will be an error, so we keep scrolling down.
-        time.sleep(0.3)
-        pass
-
-scroll_time_end=datetime.datetime.now()
-
-job_lists = driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
-jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
-
-len(jobs)
-scroll_time=scroll_time_end-scroll_time_start
-scroll_time
-# 2min circa
-
-sec_job_list= sec_driver.find_element(By.CLASS_NAME,"jobs-search__results-list")
-sec_jobs = job_lists.find_elements(By.TAG_NAME,"li") # return a list
-sec_jobs==jobs #True
-
-##############################################################################################
-#
-# 2. Get the basic information: 
-# number of listed jobs, basic information of job description on the left panel of the Website 
-#
-###############################################################################################
-# We get a list containing all jobs that we have found.
-
-# Declare a void list to keep track of all obtaind data.
-#job_title_list = []
-#company_name_list = []
-#location_list = []
-#date_list = []
-#job_link_list = []
-
-# This function is added to avoid a certain order (1,2,3,..) when webscraping. 
-# That reduces the risk to get banned, as we scan the job like e.g.(104,78,5,2006,..)
-# for more see: https://levelup.gitconnected.com/if-you-are-web-scraping-dont-do-these-things-2cba2ebe5b29
-def scrambled(orig):
-    dest = orig[:]
-    random.shuffle(dest)
-    return dest
-
-rand_jobs=scrambled(jobs)
-
-def basic_info(rand_jobs=rand_jobs,job_title_list = [],company_name_list = [],
-               location_list = [],date_list = [],job_link_list = []):
+    rand_jobs=scrambled(jobs)
+    randomized.append(rand_jobs)
+    jobs_ordered.append(jobs)
     
-    #We loop over every job and obtain all the wanted info.
-    for job in rand_jobs:
-        #job_title
-        job_title = job.find_element(By.CSS_SELECTOR,"h3").get_attribute("innerText")
-        job_title_list.append(job_title)
-        
-        #company_name
-        company_name = job.find_element(By.CSS_SELECTOR,"h4").get_attribute("innerText")
-        company_name_list.append(company_name)
-        
-        #location
-        location = job.find_element(By.CSS_SELECTOR,"div>div>span").get_attribute("innerText")
-        location_list.append(location)
-        
-        #date
-        date = job.find_element(By.CSS_SELECTOR,"div>div>time").get_attribute("datetime")
-        date_list.append(date)
-        
-        #job_link
-        job_link = job.find_element(By.CSS_SELECTOR,"a").get_attribute("href")
-        job_link_list.append(job_link)
-    
-    return company_name_list,job_link_list,date_list,location_list,job_title_list
+
+jobs_ordered[0]==jobs_ordered[1] #false
+set(jobs_ordered[0])==set(jobs_ordered[1])#false
 
 
+############ Webscrape left side panel of the LinkedIn Jobs ####################################
 basicinfo_time_start=datetime.datetime.now()
-company_name_list,job_link_list,date_list,location_list,job_title_list= basic_info()
+company_name_list,job_link_list,date_list,location_list,job_title_list= basic_info(rand_jobs=randomized[0]) #changed at 18.07.2023
 # 3min 30
 basicinfo_time_end=datetime.datetime.now()
 basicinfo_time=basicinfo_time_end-basicinfo_time_start
 basicinfo_time
 
+# The tuples
+# The List of jobs can be split into n_worker ==len(drivers)
+len(drivers)
+# Dristribute all jobs equally to the n_worker available
+rand_list=np.array(randomized[0])
+splitted_list= np.split(rand_list,len(drivers))
+
+#type((drivers[0],splitted_list[0]))
+
+# HIER FÄNGT MEINE FUNCTION AN; FUNCTION PARALLELDRIVER(DRIVER)
+# 
+tuple_list =list(zip(splitted_list, drivers))
+len(tuple_list[0])
+arguments=tuple_list[0]
+
+saved_data= pd.DataFrame({
+    'id_number': [],
+    'Description': [],
+    'Level': [],
+    'Type': [],
+    'Function': [],
+    'Industry': [],
+    'profile_Link': []
+    })
+
+def paralleldriver(arguments, saved_data=saved_data):
+
+    rand_jobs,driver = arguments   
+    ############ Webscrape left side panel of the LinkedIn Jobs ####################################
+    #company_name_list,job_link_list,date_list,location_list,job_title_list= basic_info()
+
+    ############ Webscrape right side panel of the LinkedIn Jobs ####################################
+    
+    jd = [] #job_description
+    seniority = []
+    emp_type = []
+    job_func = []
+    job_ind = []
+    prof = [] # company link
+    id_num=[]
+    # 
+    x=0
+    for item in rand_jobs: #range(len(jobs)):
+        num= jobs_ordered[0].index(item) # not rand_jobs, because the order changed there!
+        x+=1
+        #print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
+        id_num.append(num)
+        #job_func0=[]
+        #industries0=[]
+        # clicking job to view job details
+        
+        #__________________________________________________________________________ JOB Link
+        
+        try: 
+            job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
+            #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
+            element= WebDriverWait(driver= driver, timeout=20).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            time.sleep(random.randint(2,3)) # to ensure that the scrolling is not faster than my code on saving the data 
+            element.click() 
+
+
+            #job_click = item.find_element(By.XPATH,job_click_path).click() # The URL changes when clicking on a certain job offer
+
+            # random waiting time to avoid a certain structure,so I do not get banned
+            #job_click = item.find_element(By.XPATH,'.//a[@class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]"]')
+        except TimeoutException:
+            print(r"Loading took too much time")
+            pass
+        
+        
+        #__________________________________________________________________________ JOB Description
+        jd_path = '/html/body/div/div/section/div/div/section/div/div/section/div'
+
+        try:
+
+            jd0 = item.find_element(By.XPATH,jd_path).get_attribute('innerText')
+            jd.append(jd0)
+        except:
+            jd0=None # Not all job postings have all of these detailed information 
+            jd.append(jd0)
+            pass
+        
+        #__________________________________________________________________________ JOB Seniority
+        seniority_path='/html/body/div/div/section/div/div/section/div/ul/li[1]/span'
+        
+        try:
+            seniority0 = item.find_element(By.XPATH,seniority_path).get_attribute('innerText')
+            seniority.append(seniority0)
+        except:
+            seniority0=None
+            seniority.append(seniority0)
+            pass
+
+        #__________________________________________________________________________ JOB Time
+        emp_type_path='/html/body/div/div/section/div/div/section/div/ul/li[2]/span'
+        
+        try:
+            emp_type0 = item.find_element(By.XPATH,emp_type_path).get_attribute('innerText')
+            emp_type.append(emp_type0)
+        except:
+            emp_type0=None
+            emp_type.append(emp_type0)
+            pass
+        
+        #__________________________________________________________________________ JOB Function
+        function_path='/html/body/div/div/section/div/div/section/div/ul/li[3]/span'
+        
+        try:
+            func0 = item.find_element(By.XPATH,function_path).get_attribute('innerText')
+            job_func.append(func0)
+        except:
+            func0=None
+            job_func.append(func0)
+            pass
+
+        #__________________________________________________________________________ JOB Industry
+        industry_path='/html/body/div/div/section/div/div/section/div/ul/li[4]/span'
+        
+        try:
+            ind0 = item.find_element(By.XPATH,industry_path).get_attribute('innerText')
+            job_ind.append(ind0)
+        except:
+            ind0=None
+            job_ind.append(ind0)
+            pass
+
+        # Den Path Finden: rechtklick auf das gewünschte Objekt/ den Text >> untersuchen, 
+        # dann rechtsklick auf die markierte Stelle im HTML Code >> kopieren >> gesamten XPATH kopieren
+        profile_link_path = '/html/body/div[1]/div/section/div[2]/section/div/a'
+        # old that worked on other file one_job : '/html/body/div[3]/div/section/div[2]/section/div/a'
+        #f'/html/body/div[1]/div/section/div[2]/section/div/div[1]/div/h4/div[1]/span[1]/a' #vorher anfang april
+        #second: /html/body/div[3]/div/section/div[2]/section/div/a
+
+        
+        try:
+            prof0 = item.find_element(By.XPATH, profile_link_path).get_attribute('href')
+            prof0
+            prof.append(prof0)
+            
+        except:
+            prof0=None
+            prof.append(prof0)
+            pass
+        
+        del element,jd0, seniority0,emp_type0,func0,ind0,prof0
+        #time.sleep(2)
+    print("Total time elapsed for detailed info: {}") 
+
+    dataMerge= pd.DataFrame({
+    'id_number': id_num,
+    'Description': jd,
+    'Level': seniority,
+    'Type': emp_type,
+    'Function': job_func,
+    'Industry': job_ind,
+    'profile_Link': prof
+    })
+    saved_data= pd.concat([saved_data,dataMerge])
+
+    return saved_data
+
+
+#import multiprocessing
+len(splitted_list)==len(drivers) #true
+tuples =list(zip(splitted_list, drivers))
+type(splitted_list)
+type(drivers[0])
+pool = mp.Pool(processes=len(drivers))
+#results = pool.map(paralleldriver, tuples)
+if __name__ == '__main__':
+    results = [pool.apply_async(paralleldriver, args=(tup,)) for tup in tuples]
+    output = [p.get() for p in results]   # collects and returns the results
+#for r in output:
+#    print("len =", len(r[1]))   # read tuple elements
+
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=len(drivers)) as executor:
+    executor.map(paralleldriver,tuples)
 
 ##########################################################################################
 # 3. Get detailed Information
@@ -329,9 +470,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
 
 total_time = time.time() - start_time
 #------------------------------------------------
-sec_driver=webdriver.Chrome(service=s)
-sec_driver.get(url)
-
+#sec_driver=webdriver.Chrome(service=s)
+#sec_driver.get(url)
+#
 #---------------------------------------------------------
 #open new tab with the same job posting
 driver.current_window_handle # In welchem Tab befinde ich mich?
@@ -733,3 +874,4 @@ results.shape
 
 results.to_excel("JobFirmsExample.xlsx")
 len(results['ID'])-len(results['ID'].drop_duplicates()) 
+

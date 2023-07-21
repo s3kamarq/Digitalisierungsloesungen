@@ -21,6 +21,7 @@ def basic_info(rand_jobs,job_title_list = [],company_name_list = [],
         #company_name
         company_name = job.find_element(By.CSS_SELECTOR,"h4").get_attribute("innerText")
         company_name_list.append(company_name)
+        print(company_name)
         
         #location
         location = job.find_element(By.CSS_SELECTOR,"div>div>span").get_attribute("innerText")
