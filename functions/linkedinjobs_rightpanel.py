@@ -18,7 +18,7 @@ def detail_info(start, end,rand_jobs, jobs, driver):
     detail_timestart=datetime.datetime.now()
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
-        num.append(id_num)
+        id_num.append(num)
         x+=1
         print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
         #job_func0=[]
