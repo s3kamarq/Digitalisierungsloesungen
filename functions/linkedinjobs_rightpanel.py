@@ -6,20 +6,26 @@ from selenium.webdriver.support import expected_conditions as EC # want to conti
 import time
 import random
 
-def detail_info(start, end,rand_jobs, jobs, driver):
-    x=0
-    jd = [] #job_description
-    seniority = []
-    emp_type = []
-    job_func = []
-    job_ind = []
-    prof = [] # company link
-    id_num=[]
+# error testing parameter
+#start=0
+#end=len(rand_jobs)
+#rand_jobs=rand_jobs
+#jobs=jobs
+#driver=driver
+
+
+
+def detail_info(self, start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num):
+
+    print(x)
     detail_timestart=datetime.datetime.now()
+
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
+
         id_num.append(num)
         x+=1
+        print(x)
         print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
         #job_func0=[]
         #industries0=[]
@@ -76,7 +82,7 @@ def detail_info(start, end,rand_jobs, jobs, driver):
 
         #__________________________________________________________________________ JOB Function
         function_path='/html/body/div/div/section/div/div/section/div/ul/li[3]/span'
-        
+        print(job_func)
         try:
             func0 = item.find_element(By.XPATH,function_path).get_attribute('innerText')
             job_func.append(func0)
@@ -115,11 +121,8 @@ def detail_info(start, end,rand_jobs, jobs, driver):
 
         del element,jd0, seniority0,emp_type0,func0,ind0,prof0
         #time.sleep(2)
-    print("Total time elapsed for detailed info: {}")
-    return id_num, jd,seniority,emp_type, job_func,job_ind ,prof
+    #print("Total time elapsed for detailed info: {}")
+    return id_num, jd, seniority, emp_type, job_func, job_ind ,prof
 
+detail_info()
 
-#id_num,jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=0, end=10, jd=[], seniority=[],emp_type=[],job_func=[], job_ind=[],prof=[])
-#detail_timestart= datetime.datetime.now()
-#id_num, jd,seniority,emp_type, job_func,job_ind ,prof =detail_info(start=10,jd=jd, seniority=seniority,emp_type=emp_type, job_func=job_func, job_ind=job_ind, prof=prof,rand_jobs=rand_jobs, end=len(rand_jobs))
-#detail_timeend=datetime.datetime.now() 

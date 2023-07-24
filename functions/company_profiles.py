@@ -98,6 +98,8 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
                 driver.switch_to.window(driver.window_handles[0]) # after each iteration, switch to the "main tab"/ the LinkedIn job offer website 
             except TimeoutException: #special case: the company has no profile page at LinkedIn
                 no_profilepage+=1 #count how many job postings have limited information
+                prof_text.append(np.nan)
+                comp_size.append(np.nan)
                 pass
         
         else:
@@ -159,15 +161,18 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
                 driver.switch_to.window(driver.window_handles[0]) # after each iteration, switch to the "main tab"/ the LinkedIn job offer website 
             except TimeoutException: #special case: the company has no profile page at LinkedIn
                 no_profilepage+=1 #count how many job postings have limited information/no separate profile page
+                prof_text.append(np.nan)
+                comp_size.append(np.nan)
                 pass
 
     endtime=datetime.datetime.now()
     print(r"Excecution time for profiles: {}".format(endtime-starttime))
     links= unique[0]
     df_profiles= pd.DataFrame({
-    'prof':links,
-    'description': prof_text,
+    'profile_Link':links,
+    'company_description': prof_text,
     'company size': comp_size
     })
     return  df_profiles   
+
 
