@@ -36,7 +36,7 @@ def detail_info(self, start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_
         try: 
             job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
             #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-            element= WebDriverWait(driver= driver, timeout=20).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
             time.sleep(random.randint(2,3)) # to ensure that the scrolling is not faster than my code on saving the data 
             element.click() 
 
@@ -46,6 +46,11 @@ def detail_info(self, start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_
             #job_click = item.find_element(By.XPATH,'.//a[@class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]"]')
         except TimeoutException:
             print(r"Loading took too much time")
+            driver.refresh()
+            job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
+            element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            time.sleep(random.randint(2,3)) 
+            element.click() 
             pass
         
         #__________________________________________________________________________ JOB Description

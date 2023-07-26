@@ -26,7 +26,7 @@ import multiprocessing as mp
 from functions.url import create_url
 from functions.jobnumer import get_numberOfJobs
 from functions.linkedinjobs_leftpanel import *
-from functions.linkedinjobs_rightpanel import detail_info
+#from functions.linkedinjobs_rightpanel import detail_info
 from functions.company_profiles import scrape_profiles
 
 # Define the static variables we want to inspect
@@ -49,21 +49,33 @@ list_of_tuples= [(x,y) for x in techlist for y in berufserfahrunglist]
 #for testing the inner part of the loop
 #job_name= techlist[1] 
 ort=ortlist[0]
-tuple_pair = list_of_tuples[0]
+tuple_pair = list_of_tuples[1]
 
-
+#start=0
+#end=len(rand_jobs)
+#rand_jobs=rand_jobs
+#jobs=jobs
+#driver=driver
+#jd=[]
+#seniority=[]#
+#emp_type=[]
+#job_func=[]
+#job_ind=[]
+#prof=[]
+#id_num=[]
+#x=0
 
 def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num):
 
-    print(x)
+    
     detail_timestart=datetime.datetime.now()
 
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
-
+        print(num)
         id_num.append(num)
         x+=1
-        print(x)
+        
         print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
         #job_func0=[]
         #industries0=[]
@@ -84,6 +96,11 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             #job_click = item.find_element(By.XPATH,'.//a[@class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]"]')
         except TimeoutException:
             print(r"Loading took too much time")
+            driver.refresh()
+            job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
+            element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            time.sleep(random.randint(2,3)) 
+            element.click()
             pass
         
         #__________________________________________________________________________ JOB Description
@@ -162,7 +179,8 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
     #print("Total time elapsed for detailed info: {}")
     return id_num, jd, seniority, emp_type, job_func, job_ind ,prof
 
-
+############################################################################################
+###################################################################
 def page_webscraping(tuple_pair, ort):
 
     job_name, erfahrung = tuple_pair
@@ -258,9 +276,9 @@ def page_webscraping(tuple_pair, ort):
 
 
 
-
+time1=datetime.datetime.now()
 df = page_webscraping(tuple_pair=tuple_pair, ort=ort)
-
+time2=datetime.datetime.now()-time1
 
 # set up multithreading 
 mp.cpu_count()# 8 Kerne
