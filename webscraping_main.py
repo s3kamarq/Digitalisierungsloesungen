@@ -189,7 +189,7 @@ def page_webscraping(tuple_pair, ort):
     url = create_url(job_name, location, ort, erfahrung)
 
     # set-up the browser
-    s=Service(ChromeDriverManager().install())
+    s=Service(ChromeDriverManager(version="114.0.5735.90").install())
     driver= webdriver.Chrome(service=s)
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors-spki-list')
@@ -271,6 +271,7 @@ def page_webscraping(tuple_pair, ort):
 
     # merge the dataframes using full outer join
     scraped_data= pd.merge(dataMerge,df_companies,how='left', on=['profile_Link'])
+    scraped_data.to_pickle(r"data_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
     driver.close()
     return scraped_data
 
