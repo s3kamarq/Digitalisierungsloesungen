@@ -64,18 +64,42 @@ tuple_pair = list_of_tuples[1]
 #prof=[]
 #id_num=[]
 #x=0
+from tkinter import filedialog
+from tkinter import messagebox
+
+def openpreviousdata():
+    m= messagebox.askyesno(message=r'Möchten Sie das Zwischnergebnis einlesen?')
+    if m==True:
+        inputfile= filedialog.askopenfilename()
+        eingelesenesDataframe= pd.read_pickle(inputfile)
+    else:
+        eingelesenesDataframe=pd.DataFrame()
+    return eingelesenesDataframe
+
+
+# error testing parameter
+#start=0
+#end=len(rand_jobs)
+#rand_jobs=rand_jobs
+#jobs=jobs
+#driver=driver
+
+
 
 def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num):
 
-    
-    detail_timestart=datetime.datetime.now()
+    #read in previous data if necessary
 
+    print(x)
+    detail_timestart=datetime.datetime.now()
+    intermediate_result=openpreviousdata()
+    # 
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
-        print(num)
+
         id_num.append(num)
         x+=1
-        
+        print(x)
         print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
         #job_func0=[]
         #industries0=[]
@@ -86,7 +110,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
         try: 
             job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
             #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-            element= WebDriverWait(driver= driver, timeout=20).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
             time.sleep(random.randint(2,3)) # to ensure that the scrolling is not faster than my code on saving the data 
             element.click() 
 
@@ -100,7 +124,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
             element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
             time.sleep(random.randint(2,3)) 
-            element.click()
+            element.click() 
             pass
         
         #__________________________________________________________________________ JOB Description
@@ -173,9 +197,12 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             prof0=None
             prof.append(prof0)
             pass
-
+        
+        intermediate_result.loc[len(intermediate_result)]=[element,jd0, seniority0,emp_type0,func0,ind0,prof0]
+        intermediate_result.to_pickle('zwischenergebnis.pkl')
         del element,jd0, seniority0,emp_type0,func0,ind0,prof0
         #time.sleep(2)
+        
     #print("Total time elapsed for detailed info: {}")
     return id_num, jd, seniority, emp_type, job_func, job_ind ,prof
 
@@ -272,6 +299,7 @@ def page_webscraping(tuple_pair, ort):
     # merge the dataframes using full outer join
     scraped_data= pd.merge(dataMerge,df_companies,how='left', on=['profile_Link'])
     scraped_data.to_pickle(r"data_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
+    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}.xlsx".format(job_name,jobs_num,ort,erfahrung))
     driver.close()
     return scraped_data
 
