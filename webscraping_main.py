@@ -86,15 +86,26 @@ def openpreviousdata():
 
 
 
-def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num):
+def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num, basic ):
 
     #read in previous data if necessary
-
+    job_link_list= basic['Link']
     print(x)
     detail_timestart=datetime.datetime.now()
     intermediate_result=openpreviousdata()
+    
+    #remove alreade scraped jobs
+    webelem_links= pd.DataFrame(rand_jobs,job_link_list)
+
+    for i in intermediate_result[job_link_list]:
+        if i==webelem_links[job_link_list]:
+            webelem_links.drop(webelem_links[webelem_links.job_link_list==i])
+        else:
+            pass
+
+
     # 
-    for item in rand_jobs[start:end]: #range(len(jobs)):
+    for item in rand_jobs[start:end]: #range(len(jobs)): type: list of WebElement
         num= jobs.index(item) # not rand_jobs, because the order changed there!
 
         id_num.append(num)
@@ -198,13 +209,13 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             prof.append(prof0)
             pass
         
-        intermediate_result.loc[len(intermediate_result)]=[element,jd0, seniority0,emp_type0,func0,ind0,prof0]
+        intermediate_result.loc[len(intermediate_result)]=[num,jd0, seniority0,emp_type0,func0,ind0,prof0,job_link_list[x]]
         intermediate_result.to_pickle('zwischenergebnis.pkl')
         del element,jd0, seniority0,emp_type0,func0,ind0,prof0
         #time.sleep(2)
         
     #print("Total time elapsed for detailed info: {}")
-    return id_num, jd, seniority, emp_type, job_func, job_ind ,prof
+    return intermediate_result
 
 ############################################################################################
 ###################################################################
@@ -254,44 +265,37 @@ def page_webscraping(tuple_pair, ort):
     rand_jobs= scrambled(jobs)
     company_name_list,job_link_list,date_list,location_list,job_title_list= basic_info(rand_jobs=rand_jobs)
 
-
-    # webscrape the detailed information (right panel) and saves them in list
-    
-    #x=0
-    jd = [] #job_description
-    seniority = []
-    emp_type = []
-    job_func = []
-    job_ind = []
-    prof = [] # company link
-    id_num=[]
-
-
-    id_num, jd,seniority,emp_type, job_func,job_ind ,prof = detail_info(start=0, end=len(rand_jobs),rand_jobs=rand_jobs,jobs=jobs, driver=driver,
-                                                                        jd=[],seniority=[],emp_type=[],job_func=[],job_ind=[],prof=[],id_num=[],x=0)
-
-    
     #intermediate save of data
-    dataMerge= pd.DataFrame({
-    'id_num': id_num,
+    dataBasic= pd.DataFrame({
     'Date': date_list,
     'Company': company_name_list,
     'Title': job_title_list,
     'Location': location_list,
-    'Link': job_link_list,
-    'Description': jd,
-    'Level': seniority,
-    'Type': emp_type,
-    'Function': job_func,
-    'Industry': job_ind,
-    'profile_Link': prof
-    #'Profile': prof_text,
-    #'Company_Size': comp_size
+    'Link': job_link_list
     })
+    # webscrape the detailed information (right panel) and saves them in list
+    
+    #x=0
+    #jd = [] #job_description
+    #seniority = []
+    #emp_type = []
+    #job_func = []
+    #job_ind = []
+    #prof = [] # company link
+    #id_num=[]
+
+
+    detail_dataframe = detail_info(start=0, end=len(rand_jobs),rand_jobs=rand_jobs,jobs=jobs, driver=driver,
+                                                                        jd=[],seniority=[],emp_type=[],job_func=[],job_ind=[],prof=[],id_num=[],x=0, basic=dataBasic)
+
+    
+    
+    dataMerge= pd.concat(dataBasic,detail_dataframe)
+
 
     # webscrape company profiles (new URL pages)
     #initialize lists
-    temp= pd.DataFrame([prof,rand_jobs]).transpose()
+    temp= pd.DataFrame([detail_dataframe.loc[6],rand_jobs]).transpose()
     unique=temp.drop_duplicates(subset=[0], keep='first') # Company link + corresponding WebElement 
     u_webelem= unique[1]
     df_companies= scrape_profiles(webelements= u_webelem,unique=unique, maxtab=10, jobs=jobs,driver=driver)
