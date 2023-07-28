@@ -110,13 +110,13 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
     #remove alreade scraped jobs
     webelem_links= pd.DataFrame({'webelements':rand_jobs, 
                                  'links':job_link_list})
-    if intermediate_result.empty==False:
+    if intermediate_result.Linkdetail.isna().all():
+        pass
+    else:
         for i in webelem_links['links']:
-            for j in intermediate_result['Link']:
+            for j in intermediate_result['Linkdetail']:
                 if i==j:
                     webelem_links= webelem_links.drop(webelem_links[webelem_links['links']==i].index)
-    else:
-        pass
 
     # makes sure that the index is continous and has no "jumps", ie. 0,1,2,3 and not 0,1,3,4 after dropping rows
     webelem_links.reset_index(inplace=True, drop=True)
