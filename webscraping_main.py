@@ -52,7 +52,7 @@ list_of_tuples= [(x,y) for x in techlist for y in berufserfahrunglist]
 #for testing the inner part of the loop
 #job_name= techlist[1] 
 ort=ortlist[0]
-tuple_pair = list_of_tuples[30]
+tuple_pair = list_of_tuples[31]
 
 #start=0
 #end=len(rand_jobs)
@@ -81,18 +81,18 @@ def openpreviousdata(basic):
 
 
 # error testing parameter
-#start=0
-#end=len(rand_jobs)
+start=0
+end=len(rand_jobs)
 
-#jd=[]
-#seniority=[]
-#emp_type=[]
-#job_func=[]#
-#job_ind=[]
-#prof=[]
-#id_num=[]
-#x=0
-#basic=dataBasic
+jd=[]
+seniority=[]
+emp_type=[]
+job_func=[]#
+job_ind=[]
+prof=[]
+id_num=[]
+x=0
+basic=dataBasic
 
 
 
@@ -311,7 +311,6 @@ def page_webscraping(tuple_pair, ort):
                                                                         jd=[],seniority=[],emp_type=[],job_func=[],job_ind=[],prof=[],id_num=[],x=0, basic=dataBasic)
 
     
-    
     dataMerge= pd.concat(dataBasic,detail_dataframe)
 
 
@@ -337,9 +336,14 @@ time2=datetime.datetime.now()-time1
 
 # set up multithreading 
 mp.cpu_count()# 8 Kerne
-max_worker=3
-with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker) as executor:
-    executor.map(page_webscraping,list_of_tuples)
+#max_worker=3
+#with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker) as executor:
+#    executor.map(page_webscraping,list_of_tuples)
+
+#for ort_n in ortlist:
+#    df = page_webscraping(tuple_pair=tuple_pair, ort=ort)
+
+
 
 
 
