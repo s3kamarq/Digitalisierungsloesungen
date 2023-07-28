@@ -20,6 +20,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 import concurrent.futures # For Multithreading
 import multiprocessing as mp
+from tkinter import filedialog
+import pickle
+
 
 ### 
 ### import own functions
@@ -49,7 +52,7 @@ list_of_tuples= [(x,y) for x in techlist for y in berufserfahrunglist]
 #for testing the inner part of the loop
 #job_name= techlist[1] 
 ort=ortlist[0]
-tuple_pair = list_of_tuples[1]
+tuple_pair = list_of_tuples[30]
 
 #start=0
 #end=len(rand_jobs)
@@ -67,22 +70,29 @@ tuple_pair = list_of_tuples[1]
 from tkinter import filedialog
 from tkinter import messagebox
 
-def openpreviousdata():
+def openpreviousdata(basic):
     m= messagebox.askyesno(message=r'Möchten Sie das Zwischnergebnis einlesen?')
     if m==True:
         inputfile= filedialog.askopenfilename()
         eingelesenesDataframe= pd.read_pickle(inputfile)
     else:
-        eingelesenesDataframe=pd.DataFrame()
+        eingelesenesDataframe=basic.reindex(columns=['Date', 'Company', 'Title', 'Location', 'Link','id_number','job_Description', 'seniority','employ_type','function','industry','profileLink','Linkdetail'])
     return eingelesenesDataframe
 
 
 # error testing parameter
 #start=0
 #end=len(rand_jobs)
-#rand_jobs=rand_jobs
-#jobs=jobs
-#driver=driver
+
+#jd=[]
+#seniority=[]
+#emp_type=[]
+#job_func=[]#
+#job_ind=[]
+#prof=[]
+#id_num=[]
+#x=0
+#basic=dataBasic
 
 
 
@@ -92,26 +102,35 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
     job_link_list= basic['Link']
     print(x)
     detail_timestart=datetime.datetime.now()
-    intermediate_result=openpreviousdata()
+    intermediate_result=openpreviousdata(basic)
+    
+    #full_intermediate=basic.merge(intermediate_result, how='outer', left_on='Link', right_on='Link')
+    #full_intermediate=basic.reindex(columns=['Date', 'Company', 'Title', 'Location', 'Link','id_number','job_Description', 'seniority','employ_type','function','industry','profileLink','Linkdetail'])
     
     #remove alreade scraped jobs
-    webelem_links= pd.DataFrame(rand_jobs,job_link_list)
+    webelem_links= pd.DataFrame({'webelements':rand_jobs, 
+                                 'links':job_link_list})
+    if intermediate_result.empty==False:
+        for i in webelem_links['links']:
+            for j in intermediate_result['Link']:
+                if i==j:
+                    webelem_links= webelem_links.drop(webelem_links[webelem_links['links']==i].index)
+    else:
+        pass
 
-    for i in intermediate_result[job_link_list]:
-        if i==webelem_links[job_link_list]:
-            webelem_links.drop(webelem_links[webelem_links.job_link_list==i])
-        else:
-            pass
-
+    # makes sure that the index is continous and has no "jumps", ie. 0,1,2,3 and not 0,1,3,4 after dropping rows
+    webelem_links.reset_index(inplace=True, drop=True)
 
     # 
-    for item in rand_jobs[start:end]: #range(len(jobs)): type: list of WebElement
+    for item in webelem_links['webelements'][start:end]: #range(len(jobs)): type: list of WebElement
         num= jobs.index(item) # not rand_jobs, because the order changed there!
-
+        
+        link0= webelem_links.loc[webelem_links.webelements== item,'links'].to_string(index=False)
+        
         id_num.append(num)
         x+=1
         print(x)
-        print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format(x/len(rand_jobs), int((datetime.datetime.now()-detail_timestart).seconds/60)))
+        print("Scraping Status: {} %  _________________ Time elapsed: {} minutes ".format((x/len(rand_jobs))*100, int((datetime.datetime.now()-detail_timestart).seconds/60)))
         #job_func0=[]
         #industries0=[]
         # clicking job to view job details
@@ -131,11 +150,11 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             #job_click = item.find_element(By.XPATH,'.//a[@class="base-card__full-link absolute top-0 right-0 bottom-0 left-0 p-0 z-[2]"]')
         except TimeoutException:
             print(r"Loading took too much time")
-            driver.refresh()
-            job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
-            element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
-            time.sleep(random.randint(2,3)) 
-            element.click() 
+            #driver.refresh()
+            #job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
+            #element= WebDriverWait(driver= driver, timeout=60).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+            #time.sleep(random.randint(2,3)) 
+            #element.click() 
             pass
         
         #__________________________________________________________________________ JOB Description
@@ -209,9 +228,12 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             prof.append(prof0)
             pass
         
-        intermediate_result.loc[len(intermediate_result)]=[num,jd0, seniority0,emp_type0,func0,ind0,prof0,job_link_list[x]]
+
+        #intermediate_result.loc[len(intermediate_result)]=[num,jd0, seniority0,emp_type0,func0,ind0,prof0,link0]
+        intermediate_result.loc[intermediate_result['Link']==link0, ['id_number','job_Description', 'seniority','employ_type','function','industry','profileLink','Linkdetail']]= [num,jd0, seniority0,emp_type0,func0,ind0,prof0,link0]
         intermediate_result.to_pickle('zwischenergebnis.pkl')
-        del element,jd0, seniority0,emp_type0,func0,ind0,prof0
+        intermediate_result.to_excel('zwischenergebnis.xlsx')
+        del element,jd0, seniority0,emp_type0,func0,ind0,prof0,link0
         #time.sleep(2)
         
     #print("Total time elapsed for detailed info: {}")
