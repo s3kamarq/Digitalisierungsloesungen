@@ -5,6 +5,19 @@ from selenium.webdriver.support.ui import WebDriverWait # wait for the data to l
 from selenium.webdriver.support import expected_conditions as EC # want to continue execution of webscraping only after the detailed description has loaded
 import time
 import random
+import pandas as pd
+from tkinter import filedialog
+from tkinter import messagebox
+
+def openpreviousdata():
+    m= messagebox.askyesno(message=r'Möchten Sie das Zwischnergebnis einlesen?')
+    if m==True:
+        inputfile= filedialog.askopenfilename()
+        eingelesenesDataframe= pd.read_pickle(inputfile)
+    else:
+        eingelesenesDataframe=pd.DataFrame()
+    return eingelesenesDataframe
+
 
 # error testing parameter
 #start=0
@@ -15,11 +28,14 @@ import random
 
 
 
-def detail_info(self, start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num):
+def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, job_func,job_ind, prof,id_num):
+
+    #read in previous data if necessary
 
     print(x)
     detail_timestart=datetime.datetime.now()
-
+    intermediate_result=openpreviousdata()
+    # 
     for item in rand_jobs[start:end]: #range(len(jobs)):
         num= jobs.index(item) # not rand_jobs, because the order changed there!
 
@@ -123,9 +139,12 @@ def detail_info(self, start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_
             prof0=None
             prof.append(prof0)
             pass
-
+        
+        intermediate_result.loc[len(intermediate_result)]=[element,jd0, seniority0,emp_type0,func0,ind0,prof0]
+        intermediate_result.to_pickle('zwischenergebnis.pkl')
         del element,jd0, seniority0,emp_type0,func0,ind0,prof0
         #time.sleep(2)
+        
     #print("Total time elapsed for detailed info: {}")
     return id_num, jd, seniority, emp_type, job_func, job_ind ,prof
 

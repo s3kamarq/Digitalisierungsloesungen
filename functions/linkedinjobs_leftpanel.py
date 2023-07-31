@@ -11,7 +11,11 @@ def scrambled(orig):
 
 def basic_info(rand_jobs,job_title_list = [],company_name_list = [],
                location_list = [],date_list = [],job_link_list = []):
-    
+    job_title_list = []
+    company_name_list = []
+    location_list = []
+    date_list = []
+    job_link_list = []
     #We loop over every job and obtain all the wanted info.
     for job in rand_jobs:
         #job_title
