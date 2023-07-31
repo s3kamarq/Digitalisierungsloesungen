@@ -81,18 +81,18 @@ def openpreviousdata(basic):
 
 
 # error testing parameter
-start=0
-end=len(rand_jobs)
-
-jd=[]
-seniority=[]
-emp_type=[]
-job_func=[]#
-job_ind=[]
-prof=[]
-id_num=[]
-x=0
-basic=dataBasic
+#start=0
+#end=len(rand_jobs)
+#
+#jd=[]
+#seniority=[]
+#emp_type=[]
+#job_func=[]#
+#job_ind=[]
+#prof=[]
+#id_num=[]
+#x=0
+#basic=dataBasic
 
 
 
@@ -121,12 +121,14 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
     # makes sure that the index is continous and has no "jumps", ie. 0,1,2,3 and not 0,1,3,4 after dropping rows
     webelem_links.reset_index(inplace=True, drop=True)
 
-    # 
+    
+    #for testing #
+    item=webelem_links['webelements'][0]
     for item in webelem_links['webelements'][start:end]: #range(len(jobs)): type: list of WebElement
         num= jobs.index(item) # not rand_jobs, because the order changed there!
         
-        link0= webelem_links.loc[webelem_links.webelements== item,'links'].to_string(index=False)
-        
+        #link0= webelem_links.loc[webelem_links.webelements== item,'links'].to_string(index=False) #this has to be changed to a full link
+        link0 =webelem_links.loc[webelem_links.webelements== item,'links'].values[0]
         id_num.append(num)
         x+=1
         print(x)
@@ -239,6 +241,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
     #print("Total time elapsed for detailed info: {}")
     return intermediate_result
 
+
 ############################################################################################
 ###################################################################
 def page_webscraping(tuple_pair, ort):
@@ -287,6 +290,7 @@ def page_webscraping(tuple_pair, ort):
     rand_jobs= scrambled(jobs)
     company_name_list,job_link_list,date_list,location_list,job_title_list= basic_info(rand_jobs=rand_jobs)
 
+    
     #intermediate save of data
     dataBasic= pd.DataFrame({
     'Date': date_list,
@@ -310,21 +314,21 @@ def page_webscraping(tuple_pair, ort):
     detail_dataframe = detail_info(start=0, end=len(rand_jobs),rand_jobs=rand_jobs,jobs=jobs, driver=driver,
                                                                         jd=[],seniority=[],emp_type=[],job_func=[],job_ind=[],prof=[],id_num=[],x=0, basic=dataBasic)
 
-    
-    dataMerge= pd.concat(dataBasic,detail_dataframe)
+    #dataMerge= pd.concat(dataBasic,detail_dataframe)
 
 
     # webscrape company profiles (new URL pages)
     #initialize lists
-    temp= pd.DataFrame([detail_dataframe.loc[6],rand_jobs]).transpose()
-    unique=temp.drop_duplicates(subset=[0], keep='first') # Company link + corresponding WebElement 
-    u_webelem= unique[1]
+    temp= pd.DataFrame({ 'link': detail_dataframe.iloc[:,11],'webelement': rand_jobs})#.transpose()
+    unique=temp.drop_duplicates(subset='link', keep='first') # Company link + corresponding WebElement 
+    u_webelem= unique['webelement']
     df_companies= scrape_profiles(webelements= u_webelem,unique=unique, maxtab=10, jobs=jobs,driver=driver)
 
-    # merge the dataframes using full outer join
-    scraped_data= pd.merge(dataMerge,df_companies,how='left', on=['profile_Link'])
+    # merge the dataframes using join
+    #scraped_data= pd.merge(detail_dataframe,df_companies,how='inner', on=['profileLink'])
+    scraped_data= detail_dataframe.join(df_companies.set_index('profileLink'), on='profileLink', how='left')
     scraped_data.to_pickle(r"data_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
-    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}.xlsx".format(job_name,jobs_num,ort,erfahrung))
+    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     driver.close()
     return scraped_data
 

@@ -25,6 +25,11 @@ import pandas as pd
 #unique=df.drop_duplicates(subset=[0], keep='first') # Company link + corresponding WebElement 
 #u_webelem= unique[1]
 
+#Fehlersuche
+#webelements= u_webelem
+#unique=unique
+#maxtab=10
+
 def scrape_profiles(webelements,unique, maxtab, jobs,driver):
     i=0
     no_profilepage=0
@@ -164,15 +169,20 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
                 prof_text.append(np.nan)
                 comp_size.append(np.nan)
                 pass
+        pd.DataFrame({'prof_text':prof_text, 'comp_size': comp_size}).to_pickle('temp_profilseiten.pkl')
 
     endtime=datetime.datetime.now()
+    savedata= pd.read_pickle('temp_profilseiten.pkl')
     print(r"Excecution time for profiles: {}".format(endtime-starttime))
-    links= unique[0]
+    for handle in driver.window_handles[1:]:
+        driver.switch_to.window(handle)
+        driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+    links= unique['link'].reset_index(drop=True) # keep care of the index order
     df_profiles= pd.DataFrame({
-    'profile_Link':links,
-    'company_description': prof_text,
-    'company size': comp_size
+    'profileLink':links,
+    'company_description': savedata['prof_text'],
+    'company_size': savedata['comp_size']
     })
     return  df_profiles   
-
 
