@@ -52,7 +52,7 @@ list_of_tuples= [(x,y) for x in techlist for y in berufserfahrunglist]
 #for testing the inner part of the loop
 #job_name= techlist[1] 
 ort=ortlist[0]
-tuple_pair = list_of_tuples[31]
+tuple_pair = list_of_tuples[30]
 
 #start=0
 #end=len(rand_jobs)
@@ -83,7 +83,7 @@ def openpreviousdata(basic):
 # error testing parameter
 #start=0
 #end=len(rand_jobs)
-#
+##
 #jd=[]
 #seniority=[]
 #emp_type=[]
