@@ -51,8 +51,8 @@ list_of_tuples= [(x,y) for x in techlist for y in berufserfahrunglist]
 
 #for testing the inner part of the loop
 #job_name= techlist[1] 
-ort=ortlist[0]
-tuple_pair = list_of_tuples[30]
+#ort=ortlist[0]
+#tuple_pair = list_of_tuples[30]
 
 #start=0
 #end=len(rand_jobs)
@@ -334,9 +334,9 @@ def page_webscraping(tuple_pair, ort):
 
 
 
-time1=datetime.datetime.now()
-df = page_webscraping(tuple_pair=tuple_pair, ort=ort)
-time2=datetime.datetime.now()-time1
+#time1=datetime.datetime.now()
+#df = page_webscraping(tuple_pair=tuple_pair, ort=ort)
+#time2=datetime.datetime.now()-time1
 
 # set up multithreading 
 mp.cpu_count()# 8 Kerne
@@ -344,8 +344,9 @@ mp.cpu_count()# 8 Kerne
 #with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker) as executor:
 #    executor.map(page_webscraping,list_of_tuples)
 
-#for ort_n in ortlist:
-#    df = page_webscraping(tuple_pair=tuple_pair, ort=ort)
+for ort_n in ortlist:
+    for x in list_of_tuples[12:20]:
+        df = page_webscraping(tuple_pair=x, ort=ort_n)
 
 
 
