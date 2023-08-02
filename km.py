@@ -337,7 +337,7 @@ for tuple_pair in list_of_tuples[14:16]:
     scraped_data= detail_dataframe.join(df_companies.set_index('profileLink'), on='profileLink', how='left')
     scraped_data.to_pickle(r"data_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
     scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")), engine='xlsxwriter')
-    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+    #scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     driver.close()
     
 
