@@ -79,19 +79,19 @@ def openpreviousdata(basic):
     return eingelesenesDataframe
 
 
-# error testing parameter
-#start=0
-#end=len(rand_jobs)
-##
-#jd=[]
-#seniority=[]
-#emp_type=[]
-#job_func=[]#
-#job_ind=[]
-#prof=[]
-#id_num=[]
-#x=0
-#basic=dataBasic
+# # error testing parameter
+# start=0
+# end=len(rand_jobs)
+# #
+# jd=[]
+# seniority=[]
+# emp_type=[]
+# job_func=[]#
+# job_ind=[]
+# prof=[]
+# id_num=[]
+# x=0
+# basic=dataBasic
 
 
 
@@ -122,7 +122,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
 
     
     #for testing #
-    item=webelem_links['webelements'][0]
+    #item=webelem_links['webelements'][0]
     for item in webelem_links['webelements'][start:end]: #range(len(jobs)): type: list of WebElement
         num= jobs.index(item) # not rand_jobs, because the order changed there!
         
@@ -192,7 +192,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
 
         #__________________________________________________________________________ JOB Function
         function_path='/html/body/div/div/section/div/div/section/div/ul/li[3]/span'
-        print(func0)
+        
         try:
             func0 = item.find_element(By.XPATH,function_path).get_attribute('innerText')
             job_func.append(func0)
@@ -200,7 +200,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
             func0=None
             job_func.append(func0)
             pass
-
+        print(func0)
         #__________________________________________________________________________ JOB Industry
         industry_path='/html/body/div/div/section/div/div/section/div/ul/li[4]/span'
         
@@ -236,7 +236,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
         intermediate_result.to_excel('zwischenergebnis.xlsx')
         try:
             del element,jd0, seniority0,emp_type0,func0,ind0,prof0,link0
-        except:
+        except UnboundLocalError:
             print("does not delete...")
             pass
         #time.sleep(2)
@@ -247,7 +247,9 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
 
 ############################################################################################
 ###################################################################
-def page_webscraping(tuple_pair, ort):
+
+ort=ortlist[0]
+for tuple_pair in list_of_tuples[14:16]:
 
     job_name, erfahrung = tuple_pair
 
@@ -334,9 +336,10 @@ def page_webscraping(tuple_pair, ort):
     #scraped_data= pd.merge(detail_dataframe,df_companies,how='inner', on=['profileLink'])
     scraped_data= detail_dataframe.join(df_companies.set_index('profileLink'), on='profileLink', how='left')
     scraped_data.to_pickle(r"data_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
-    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")), engine='xlsxwriter')
+    #scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     driver.close()
-    return scraped_data
+    
 
 
 
@@ -352,12 +355,5 @@ mp.cpu_count()# 8 Kerne
 
 
 #for ort_n in ortlist:
-ort_n=ortlist[0]
-for x in list_of_tuples[13:15]:
-    df = page_webscraping(tuple_pair=x, ort=ort_n)
-
-
-
-
 
 
