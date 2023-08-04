@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC # want to conti
 import time 
 import random
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import ElementNotInteractableException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
@@ -48,7 +49,7 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
             try: 
                 job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
                 #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-                element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+                element= WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
                 element.click() 
 
 
@@ -105,14 +106,18 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
                 no_profilepage+=1 #count how many job postings have limited information
                 prof_text.append(np.nan)
                 comp_size.append(np.nan)
+                print('Dauert zu lange.. überspringe....')
                 pass
+            except ElementNotInteractableException:
+                no_profilepage+=1
+                print('ERROR: Element nicht interagierbar.. überspringe...')
         
         else:
             #__Scraping block__________________________________________________
             try: 
                 job_click_path = f'/html/body/div[1]/div/main/section[2]/ul/li[{num+1}]'
                 #Wait as long as required, or maximum 10 sec before for the page loading of the detailed job description on the right side of the page
-                element= WebDriverWait(driver= driver, timeout=3).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
+                element= WebDriverWait(driver= driver, timeout=10).until(EC.presence_of_element_located((By.XPATH, job_click_path)))
                 element.click() 
 
 
@@ -168,7 +173,11 @@ def scrape_profiles(webelements,unique, maxtab, jobs,driver):
                 no_profilepage+=1 #count how many job postings have limited information/no separate profile page
                 prof_text.append(np.nan)
                 comp_size.append(np.nan)
+                print('Element lädt zu lang-- überspringe...')
                 pass
+            except ElementNotInteractableException:
+                no_profilepage+=1
+                print('ERROR: Element nicht interagierbar.. überspringe...')
         pd.DataFrame({'prof_text':prof_text, 'comp_size': comp_size}).to_pickle('temp_profilseiten.pkl')
 
     endtime=datetime.datetime.now()
