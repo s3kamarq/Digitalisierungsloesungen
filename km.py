@@ -249,7 +249,8 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
 ###################################################################
 
 ort=ortlist[0]
-for tuple_pair in list_of_tuples[14:16]:
+tuple_pair=list_of_tuples[17]
+for tuple_pair in list_of_tuples[57:60]:
 
     job_name, erfahrung = tuple_pair
 
@@ -260,7 +261,7 @@ for tuple_pair in list_of_tuples[14:16]:
     
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors-spki-list')
-    options.add_argument("--diable-notifications") #new 16.02 
+    #options.add_argument("--diable-notifications") #new 16.02 
     options.page_load_strategy= 'eager'
     s=Service(ChromeDriverManager(version="114.0.5735.90").install())
     driver= webdriver.Chrome(service=s, options=options)
@@ -336,7 +337,7 @@ for tuple_pair in list_of_tuples[14:16]:
     #scraped_data= pd.merge(detail_dataframe,df_companies,how='inner', on=['profileLink'])
     scraped_data= detail_dataframe.join(df_companies.set_index('profileLink'), on='profileLink', how='left')
     scraped_data.to_pickle(r"data_{0}_{1}_{2}_{3}.pkl".format(job_name,jobs_num,ort,erfahrung))
-    scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")), engine='xlsxwriter')
+    scraped_data.to_excel(r"output/data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")), engine='xlsxwriter')
     #scraped_data.to_excel(r"data_{0}_{1}_{2}_{3}_{4}.xlsx".format(job_name,jobs_num,ort,erfahrung,datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
     driver.close()
     

@@ -16,3 +16,28 @@ def openpreviousdata():
 
 print(eingelesenesDataframe)
 
+k=0
+for i in webelem_links['links']:
+    
+    for j in intermediate_result['Link']:
+        if i==j:
+            print(i)
+    
+
+for i in intermediate_result['Link']:
+    k+=1
+    print(k)
+    if i in webelem_links['links']:
+        print(i)
+    else:
+        print('not found')
+
+    
+intermediate_result['Link'][0]==webelem_links['links'][1]
+t=webelem_links['webelements']
+type(t)
+item=webelem_links['webelements'][0]
+type(item) # webelement
+
+for item in webelem_links['webelements']:
+    print(item)
