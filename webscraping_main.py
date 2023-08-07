@@ -48,7 +48,6 @@ ortlist= [1,2,3]
 #combine techlist and berufserfahrunglist
 list_of_tuples= [(x,y) for x in techlist for y in berufserfahrunglist]
 #len(list_of_tuples) # This gives us 16*5=80 combination
-
 #for testing the inner part of the loop
 #job_name= techlist[1] 
 #ort=ortlist[0]
@@ -193,7 +192,7 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
 
         #__________________________________________________________________________ JOB Function
         function_path='/html/body/div/div/section/div/div/section/div/ul/li[3]/span'
-        print(job_func)
+        print(func0)
         try:
             func0 = item.find_element(By.XPATH,function_path).get_attribute('innerText')
             job_func.append(func0)
@@ -235,7 +234,11 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
         intermediate_result.loc[intermediate_result['Link']==link0, ['id_number','job_Description', 'seniority','employ_type','function','industry','profileLink','Linkdetail']]= [num,jd0, seniority0,emp_type0,func0,ind0,prof0,link0]
         intermediate_result.to_pickle('zwischenergebnis.pkl')
         intermediate_result.to_excel('zwischenergebnis.xlsx')
-        del element,jd0, seniority0,emp_type0,func0,ind0,prof0,link0
+        try:
+            del element,jd0, seniority0,emp_type0,func0,ind0,prof0,link0
+        except:
+            print("does not delete...")
+            pass
         #time.sleep(2)
         
     #print("Total time elapsed for detailed info: {}")
@@ -252,12 +255,15 @@ def page_webscraping(tuple_pair, ort):
     url = create_url(job_name, location, ort, erfahrung)
 
     # set-up the browser
-    s=Service(ChromeDriverManager(version="114.0.5735.90").install())
-    driver= webdriver.Chrome(service=s)
+    
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-certificate-errors-spki-list')
     options.add_argument("--diable-notifications") #new 16.02 
+    options.page_load_strategy= 'eager'
+    s=Service(ChromeDriverManager(version="114.0.5735.90").install())
+    driver= webdriver.Chrome(service=s, options=options)
     driver.get(url)
+    driver.maximize_window()
 
     # save the given number of jobs given by LinkedIn
     jobs_num = get_numberOfJobs(driver=driver)
@@ -344,9 +350,11 @@ mp.cpu_count()# 8 Kerne
 #with concurrent.futures.ThreadPoolExecutor(max_workers=max_worker) as executor:
 #    executor.map(page_webscraping,list_of_tuples)
 
-for ort_n in ortlist:
-    for x in list_of_tuples[12:20]:
-        df = page_webscraping(tuple_pair=x, ort=ort_n)
+
+#for ort_n in ortlist:
+ort_n=ortlist[0]
+for x in list_of_tuples[13:15]:
+    df = page_webscraping(tuple_pair=x, ort=ort_n)
 
 
 
