@@ -241,11 +241,11 @@ def detail_info(start, end,rand_jobs, jobs, driver, x, jd, seniority, emp_type, 
 ############################################################################################
 ###################################################################
 
-combination[0]
-job_name,erfahrung,ort= combination[0]
-
-
-for tuple_pair in combination[3:10]:
+#combination[0]
+#job_name,erfahrung,ort= combination[0]
+s=Service(ChromeDriverManager().install())
+tuple_pair=combination[19]
+for tuple_pair in combination[0:3]:
 
     job_name, erfahrung,ort = tuple_pair
 
@@ -258,7 +258,7 @@ for tuple_pair in combination[3:10]:
     options.add_argument('--ignore-certificate-errors-spki-list')
     #options.add_argument("--diable-notifications") #new 16.02 
     options.page_load_strategy= 'eager'
-    s=Service(ChromeDriverManager(version="114.0.5735.90").install())
+    
     driver= webdriver.Chrome(service=s, options=options)
     driver.get(url)
     driver.maximize_window()
